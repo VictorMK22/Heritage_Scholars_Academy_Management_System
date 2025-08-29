@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Guardian Registration | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">
+                        <i class="fas fa-user-shield mr-2"></i>Guardian Registration
+                    </h2>
+                </div>
+                
+                <div class="card-body">
+                    {% if messages %}
+                    <div class="mb-4">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+                        
+                        <input type="hidden" name="role" value="guardian">
+                        
+                        <div class="row">
+                            <!-- Personal Information Column -->
+                            <div class="col-md-6">
+                                <div class="card mb-4">
+                                    <div class="card-header bg-light">
+                                        <h4 class="mb-0">
+                                            <i class="fas fa-user-circle mr-2"></i>Basic Information
+                                        </h4>
+                                    </div>
+                                    <div class="card-body">
+                                        {{ form.username|as_crispy_field }}
+                                        {{ form.email|as_crispy_field }}
+                                        {{ form.first_name|as_crispy_field }}
+                                        {{ form.last_name|as_crispy_field }}
+                                        {{ form.phone|as_crispy_field }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Account & Guardian Info Column -->
+                            <div class="col-md-6">
+                                <div class="card mb-4">
+                                    <div class="card-header bg-light">
+                                        <h4 class="mb-0">
+                                            <i class="fas fa-lock mr-2"></i>Account Details
+                                        </h4>
+                                    </div>
+                                    <div class="card-body">
+                                        {{ form.password1|as_crispy_field }}
+                                        {{ form.password2|as_crispy_field }}
+                                    </div>
+                                </div>
+                                
+                                <div class="card">
+                                    <div class="card-header bg-light">
+                                        <h4 class="mb-0">
+                                            <i class="fas fa-briefcase mr-2"></i>Guardian Information
+                                        </h4>
+                                    </div>
+                                    <div class="card-body">
+                                        {{ form.occupation|as_crispy_field }}
+                                        {% if form.profile_picture %}
+                                            {{ form.profile_picture|as_crispy_field }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg btn-block py-3">
+                                <i class="fas fa-user-plus mr-2"></i>Complete Registration
+                            </button>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <p class="mb-0">
+                                Already have an account? 
+                                <a href="{% url 'login' %}" class="font-weight-bold">Login here</a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Client-side form validation enhancement
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    
+    form.addEventListener('submit', function(e) {
+        // Add any client-side validation here if needed
+        const password1 = document.getElementById('id_password1').value;
+        const password2 = document.getElementById('id_password2').value;
+        
+        if (password1 !== password2) {
+            e.preventDefault();
+            alert('Passwords do not match!');
+        }
+    });
+});
+</script>
+{% endblock %}

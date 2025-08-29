@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Submissions</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Assignment</th>
+                <th>Student</th>
+                <th>Submitted</th>
+                <th>Grade</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for submission in submissions %}
+            <tr>
+                <td>{{ submission.assignment.title }}</td>
+                <td>{{ submission.student.user.get_full_name }}</td>
+                <td>{{ submission.submission_date|date:"Y-m-d" }}</td>
+                <td>{{ submission.grade|default:"Not graded" }}</td>
+                <td>
+                    <a href="{% url 'academics:submission_detail' submission.pk %}" class="btn btn-sm btn-info">View</a>
+                    <a href="{% url 'academics:submission_grade' submission.pk %}" class="btn btn-sm btn-success">Grade</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

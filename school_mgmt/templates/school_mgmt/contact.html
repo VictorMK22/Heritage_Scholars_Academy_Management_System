@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Us | Heritage Scholars Academy{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h1 class="display-4 fw-bold text-primary mb-4">Contact Our Academy</h1>
+            
+            {% if success %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <strong>Thank you!</strong> Your message has been sent successfully.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endif %}
+            
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <h2 class="h4 text-secondary"><i class="fas fa-map-marker-alt me-2"></i>Location</h2>
+                            <address class="mt-3">
+                                <strong>Heritage Scholars Academy</strong><br>
+                                123 Education Boulevard<br>
+                                Academic City, AC 12345<br>
+                                <abbr title="Phone">P:</abbr> (123) 456-7890
+                            </address>
+                            <div class="ratio ratio-16x9 mt-3">
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.215209179535!2d-73.98784492452578!3d40.74844097138989!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDDCsDQ0JzU0LjQiTiA3M8KwNTknMTIuNyJX!5e0!3m2!1sen!2sus!4v1620000000000!5m2!1sen!2sus" 
+                                        allowfullscreen="" 
+                                        loading="lazy"></iframe>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <h2 class="h4 text-secondary"><i class="fas fa-envelope me-2"></i>Send Us a Message</h2>
+                            <form method="post" class="mt-3">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Your Name</label>
+                                    <input type="text" class="form-control" id="name" name="name" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" id="email" name="email" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="subject" class="form-label">Subject</label>
+                                    <select class="form-select" id="subject" name="subject">
+                                        <option>General Inquiry</option>
+                                        <option>Admissions</option>
+                                        <option>Technical Support</option>
+                                        <option>Other</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="message" class="form-label">Message</label>
+                                    <textarea class="form-control" id="message" name="message" rows="4" required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-paper-plane me-2"></i>Send Message
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mt-4">
+                <div class="card-body">
+                    <h2 class="h4 text-secondary"><i class="fas fa-clock me-2"></i>Office Hours</h2>
+                    <table class="table table-borderless mt-3">
+                        <tbody>
+                            <tr>
+                                <th scope="row">Monday-Friday</th>
+                                <td>7:30 AM - 5:00 PM</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Saturday</th>
+                                <th scope="row">Sunday</th>
+                                <td>Closed</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

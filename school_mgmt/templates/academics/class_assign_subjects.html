@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">
+                <i class="fas fa-book-open me-2"></i>
+                Assign Subjects to {{ object.name }}
+            </h3>
+            {% if not object.teaching_assignments.exists %}
+                <div class="alert alert-warning mt-2 mb-0">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    No teachers assigned to this class. Please 
+                    <a href="{% url 'academics:class_assign_teachers' object.pk %}" class="alert-link">
+                        assign teachers first
+                    </a>.
+                </div>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+            
+            <form method="post" {% if not object.teaching_assignments.exists %}class="disabled-form"{% endif %}>
+                {% csrf_token %}
+                {{ form|crispy }}
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'academics:class_update' object.pk %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Back to Class
+                    </a>
+                    <button type="submit" class="btn btn-primary" {% if not object.teaching_assignments.exists %}disabled{% endif %}>
+                        <i class="fas fa-save me-1"></i> Save Subject Assignments
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .disabled-form {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+</style>
+{% endblock %}

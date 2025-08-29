@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>My Classes</h2>
+    <div class="list-group">
+        {% for class in classes %}
+        <a href="#" class="list-group-item list-group-item-action">
+            <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">{{ class.name }}</h5>
+                <small>{{ class.academic_year }}</small>
+            </div>
+            <p class="mb-1">Subjects: {{ class.subject_set.all|join:", " }}</p>
+        </a>
+        {% empty %}
+        <div class="alert alert-info">No classes assigned to you.</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

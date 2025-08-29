@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">
+                <i class="fas fa-edit me-2"></i>
+                {% if form.instance.pk %}Edit Class: {{ form.instance.name }}{% else %}Create New Class{% endif %}
+            </h3>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        {{ form.name|as_crispy_field }}
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% if form.instance.pk %}{% url 'academics:class_detail' form.instance.pk %}{% else %}{% url 'academics:class_list' %}{% endif %}" 
+                       class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-1"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> {% if form.instance.pk %}Save Changes{% else %}Create Class{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Only show assignment cards for existing classes -->
+    {% if form.instance.pk %}
+    <!-- Teacher Assignment Card -->
+    <div class="card shadow mt-4">
+        <div class="card-header bg-secondary text-white">
+            <h4 class="mb-0">Teacher Assignments</h4>
+        </div>
+        <div class="card-body">
+            <a href="{% url 'academics:class_assign_teachers' form.instance.pk %}" 
+               class="btn btn-outline-primary">
+                <i class="fas fa-user-plus me-1"></i> Manage Teachers
+            </a>
+        </div>
+    </div>
+    
+    <!-- Subject Assignment Card -->
+    <div class="card shadow mt-4">
+        <div class="card-header bg-secondary text-white">
+            <h4 class="mb-0">Subject Assignments</h4>
+        </div>
+        <div class="card-body">
+            <a href="{% url 'academics:class_assign_subjects' form.instance.pk %}" 
+               class="btn btn-outline-primary">
+                <i class="fas fa-book-medical me-1"></i> Manage Subjects
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Grade Details</h2>
+    <p>Student: {{ grade.student.user.get_full_name }}</p>
+    <p>Subject: {{ grade.subject.name }}</p>
+    <p>Marks: {{ grade.marks }}</p>
+</div>
+{% endblock %}

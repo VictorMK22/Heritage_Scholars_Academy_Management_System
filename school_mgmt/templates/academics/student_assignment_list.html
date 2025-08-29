@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Assignments for {{ student.user.get_full_name }}</h2>
+        <a href="{% url 'students:student_detail' student.pk %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Student
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5>Current Assignments</h5>
+        </div>
+        <div class="card-body">
+            {% if assignments %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Assignment</th>
+                            <th>Subject</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                            <th>Grade</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in assignments %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'academics:assignment_detail' item.assignment.pk %}">
+                                    {{ item.assignment.title }}
+                                </a>
+                            </td>
+                            <td>{{ item.assignment.subject }}</td>
+                            <td>
+                                {{ item.assignment.due_date|date:"M d, Y" }}
+                                {% if item.assignment.is_past_due %}
+                                <span class="badge bg-danger">Past Due</span>
+                                {% else %}
+                                <span class="badge bg-success">Due in {{ item.assignment.due_date|timeuntil }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item.submitted %}
+                                <span class="badge bg-success">Submitted</span>
+                                {% else %}
+                                <span class="badge bg-warning">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item.graded %}
+                                <span class="badge bg-info">{{ item.graded }}/{{ item.assignment.points }}</span>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if not item.submitted and not item.assignment.is_past_due %}
+                                <a href="{% url 'academics:submission_create' item.assignment.pk %}" 
+                                   class="btn btn-sm btn-primary">
+                                    Submit
+                                </a>
+                                {% elif item.submitted %}
+                                <a href="{% url 'academics:submission_detail' item.submission.pk %}" 
+                                   class="btn btn-sm btn-info">
+                                    View
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                No assignments found for this student.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

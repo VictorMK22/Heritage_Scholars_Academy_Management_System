@@ -1,0 +1,12 @@
+.badge {
+    padding: 0.25em 0.4em;
+    font-size: 75%;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    border-radius: 0.25rem;
+}
+.bg-success { background-color: #28a745; color: white; }
+.bg-secondary { background-color: #6c757d; color: white; }
+.bg-danger { background-color: #dc3545; color: white; }

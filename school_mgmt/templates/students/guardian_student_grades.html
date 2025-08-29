@@ -1,0 +1,51 @@
+{% block content %}
+<div class="card mb-4">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5>Grade Report</h5>
+            <a href="{% url 'students:guardian_student_list' %}" class="btn btn-sm btn-outline-secondary">
+                Back to Students
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <p><strong>Student:</strong> {{ student.user.get_full_name }}</p>
+                <p><strong>Class:</strong> {{ student.current_class.name }}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Admission Number:</strong> {{ student.admission_number }}</p>
+                <p><strong>Guardian:</strong> {{ student.guardian.user.get_full_name }}</p>
+            </div>
+        </div>
+
+        {% if grades %}
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th>Course</th>
+                        <th>Grade</th>
+                        <th>Date</th>
+                        <th>Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for grade in grades %}
+                    <tr>
+                        <td>{{ grade.subject.name }}</td>
+                        <td>{{ grade.grade }}</td>
+                        <td>{{ grade.date_given|date:"M d, Y" }}</td>
+                        <td>{{ grade.remarks|default:"-" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">No grade records found for this student.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

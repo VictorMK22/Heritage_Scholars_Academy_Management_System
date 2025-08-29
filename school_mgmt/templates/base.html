@@ -1,0 +1,347 @@
+<!-- base.html - Ensure Bootstrap is properly loaded across all pages -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Heritage Scholars Academy - Teacher Portal{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    
+    <!-- Bootstrap Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    {% load static %}
+    {% comment %} <link href="{% static 'css/custom.css' %}" rel="stylesheet"> {% endcomment %}
+    
+    <!-- Page-specific CSS -->
+    {% block extra_css %}{% endblock %}
+    
+    <!-- Fallback CSS in case CDN fails -->
+    <style>
+        /* Fallback styles */
+        .card {
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            background-color: #fff;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 1rem;
+        }
+        
+        .card-header {
+            padding: 0.75rem 1.25rem;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .card-body {
+            padding: 1.25rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 0.375rem 0.75rem;
+            margin-bottom: 0;
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: middle;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-radius: 0.375rem;
+            text-decoration: none;
+        }
+        
+        .btn-primary {
+            color: #fff;
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+        
+        .btn-secondary {
+            color: #fff;
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+        
+        .alert {
+            position: relative;
+            padding: 0.75rem 1.25rem;
+            margin-bottom: 1rem;
+            border: 1px solid transparent;
+            border-radius: 0.375rem;
+        }
+        
+        .alert-success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        
+        .alert-danger {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        
+        .alert-warning {
+            color: #856404;
+            background-color: #fff3cd;
+            border-color: #ffeaa7;
+        }
+        
+        .alert-info {
+            color: #0c5460;
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <i class="fas fa-school me-2"></i>HSA
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <!-- Main Navigation -->
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/' %}active-nav{% endif %}" href="{% url 'home' %}">
+                            <i class="fas fa-home me-1"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/about/' %}active-nav{% endif %}" href="{% url 'about' %}">
+                            <i class="fas fa-info-circle me-1"></i> About
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/contact/' %}active-nav{% endif %}" href="{% url 'contact' %}">
+                            <i class="fas fa-envelope me-1"></i> Contact
+                        </a>
+                    </li>
+
+                    <!-- App Navigation -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="academicsDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-book me-1"></i> Academics
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'academics:class_list' %}">Classes</a></li>
+                            <li><a class="dropdown-item" href="{% url 'academics:subject_list' %}">Subjects</a></li>
+                            <li><a class="dropdown-item" href="{% url 'academics:assignment_list' %}">Assignments</a></li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    {% if user.is_authenticated %}
+                        <!-- User-specific navigation -->
+                        {% if user.is_student %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle {% if 'student_' in request.resolver_match.url_name %}active{% endif %}" 
+                            href="#" id="studentPortalDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user-graduate me-1"></i> Student Portal
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="studentPortalDropdown">
+                                <li>
+                                    <a class="dropdown-item {% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}" 
+                                    href="{% url 'students:student_dashboard' %}">
+                                        <i class="fas fa-tachometer-alt me-1"></i> Dashboard
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item {% if request.resolver_match.url_name == 'student_subject_list' %}active{% endif %}" 
+                                    href="{% url 'students:student_subject_list' %}">
+                                        <i class="fas fa-book me-1"></i> My Subjects
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item {% if 'assignment' in request.resolver_match.url_name %}active{% endif %}" 
+                                    href="{% url 'students:student_assignment_list' %}">
+                                        <i class="fas fa-tasks me-1"></i> Assignments
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                            </ul>
+                        </li>
+                        {% elif user.is_teacher %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle {% if 'teacher_' in request.resolver_match.url_name %}active{% endif %}" 
+                            href="#" id="teacherPortalDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-chalkboard-teacher me-1"></i> Teacher Portal
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="teacherPortalDropdown">
+                                <li>
+                                    <a class="dropdown-item {% if request.resolver_match.url_name == 'teacher_dashboard' %}active{% endif %}" 
+                                    href="{% url 'teachers:dashboard' %}">
+                                        <i class="fas fa-tachometer-alt me-1"></i> Dashboard
+                                    </a>
+                                </li>
+                                <!-- Add more teacher menu items here -->
+                            </ul>
+                        </li>
+                        {% elif user.is_guardian %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle {% if 'guardian_' in request.resolver_match.url_name %}active{% endif %}" 
+                            href="{% url 'students:guardian_dashboard' %}" 
+                            id="guardianDropdown" role="button" 
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user-shield me-1"></i>Guardian Portal
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="guardianDropdown">
+                                <li>
+                                    <a class="dropdown-item {% if request.resolver_match.url_name == 'guardian_dashboard' %}active{% endif %}" 
+                                    href="{% url 'students:guardian_dashboard' %}">
+                                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item {% if request.resolver_match.url_name == 'guardian_student_list' %}active{% endif %}" 
+                                    href="{% url 'students:guardian_student_list' %}">
+                                        <i class="fas fa-users me-2"></i>My Students
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                {% with guardian_students=request.user.guardian_profile.students.all %}
+                                {% if guardian_students %}
+                                    <li class="dropdown-header">
+                                        <i class="fas fa-user-graduate me-2"></i>Student Details
+                                    </li>
+                                    {% for student in guardian_students %}
+                                        <li>
+                                            {% if student.id %}
+                                            <a class="dropdown-item {% if request.resolver_match.url_name == 'guardian_student_grades' and request.resolver_match.kwargs.student_id == student.id|stringformat:'s' %}active{% endif %}" 
+                                            href="{% url 'students:guardian_student_grades' student_id=student.id %}">
+                                                <i class="fas fa-award me-2"></i>{{ student.get_full_name|default:student.user.username }}'s Grades
+                                            </a>
+                                            {% else %}
+                                            <span class="dropdown-item text-muted">
+                                                <i class="fas fa-award me-2"></i>{{ student.get_full_name|default:student.user.username }} (No ID)
+                                            </span>
+                                            {% endif %}
+                                        </li>
+                                        <li>
+                                            {% if student.id %}  <!-- ADD THIS CHECK -->
+                                            <a class="dropdown-item {% if request.resolver_match.url_name == 'guardian_student_attendance' and request.resolver_match.kwargs.student_id == student.id|stringformat:'s' %}active{% endif %}" 
+                                            href="{% url 'students:guardian_student_attendance' student_id=student.id %}">
+                                                <i class="fas fa-calendar-check me-2"></i>{{ student.get_full_name|default:student.user.username }}'s Attendance
+                                            </a>
+                                            {% else %}  <!-- ADD FALLBACK -->
+                                            <span class="dropdown-item text-muted">
+                                                <i class="fas fa-calendar-check me-2"></i>{{ student.get_full_name|default:student.user.username }} (No ID)
+                                            </span>
+                                            {% endif %}  <!-- END CHECK -->
+                                        </li>
+                                        {% if not forloop.last %}<li><hr class="dropdown-divider m-0"></li>{% endif %}
+                                        {% endfor %}
+                                {% else %}
+                                    <li class="dropdown-item-text text-muted small">
+                                        <i class="fas fa-info-circle me-2"></i>No students linked to your account
+                                    </li>
+                                {% endif %}
+                                {% endwith %}
+                            </ul>
+                        </li>
+                        {% endif %}
+
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-circle me-1"></i> {{ user.get_full_name|default:user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">
+                                    <i class="fas fa-user me-1"></i> Profile
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                        <i class="fas fa-sign-out-alt me-1"></i> Logout
+                                    </a>
+                                    <form id="logout-form" action="{% url 'accounts:logout' %}" method="post" style="display: none;">
+                                        {% csrf_token %}
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>                        
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'accounts:login' %}">
+                                <i class="fas fa-sign-in-alt me-1"></i> Login
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'accounts:register' %}">
+                                <i class="fas fa-user-plus me-1"></i> Register
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+
+    <!-- Main Content -->
+    <main class="container">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light mt-5 py-4">
+        <div class="container text-center">
+            <p class="mb-2">&copy; 2025 Heritage Scholars Academy. Powered by Academia360.</p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{% url 'about' %}" class="text-light">About</a>
+                <a href="{% url 'contact' %}"  class="text-light">Contact</a>
+                <a href="{% url 'privacy_policy' %}" class="text-light">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle (includes Popper) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+    
+    <!-- Page-specific JavaScript -->
+    {% block extra_js %}{% endblock %}
+    
+    <!-- Global JavaScript -->
+    <script>
+        // Check if Bootstrap loaded properly
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof bootstrap === 'undefined') {
+                console.warn('Bootstrap JavaScript failed to load from CDN');
+                // You could load a local fallback here
+            }
+            
+            // Initialize tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+            
+            // Auto-dismiss alerts
+            const alerts = document.querySelectorAll('.alert-dismissible');
+            alerts.forEach(function(alert) {
+                setTimeout(function() {
+                    if (alert.querySelector('.btn-close')) {
+                        alert.querySelector('.btn-close').click();
+                    }
+                }, 5000);
+            });
+        });
+    </script>
+</body>
+</html>

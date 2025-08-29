@@ -1,0 +1,130 @@
+{% extends 'fees/base_fees.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>Fee Details</h2>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'fees:update_fee' fee.pk %}" class="btn btn-warning me-2">
+                <i class="fas fa-edit"></i> Edit
+            </a>
+            <a href="{% url 'fees:delete_fee' fee.pk %}" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Delete
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Fee Information -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Fee Information</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Student</dt>
+                        <dd class="col-sm-8">
+                            <a href="{% url 'fees:student_fee_list' fee.student.id %}">
+                                {{ fee.student.user.get_full_name }}
+                            </a>
+                        </dd>
+
+                        <dt class="col-sm-4">Amount</dt>
+                        <dd class="col-sm-8">₹{{ fee.amount }}</dd>
+
+                        <dt class="col-sm-4">Status</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge {% if fee.status == 'Paid' %}bg-success{% else %}bg-danger{% endif %}">
+                                {{ fee.status }}
+                            </span>
+                        </dd>
+
+                        <dt class="col-sm-4">Due Date</dt>
+                        <dd class="col-sm-8">{{ fee.due_date|date:"d M Y" }}</dd>
+
+                        <dt class="col-sm-4">Created On</dt>
+                        <dd class="col-sm-8">{{ fee.created_at|date:"d M Y H:i" }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Information -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5>Payment Information</h5>
+                    {% if fee.status == 'Unpaid' %}
+                    <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#paymentModal">
+                        <i class="fas fa-plus"></i> Add Payment
+                    </button>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6>Balance: ₹{{ balance|floatformat:2 }}</h6>
+                        <div class="progress">
+                            <div class="progress-bar {% if balance <= 0 %}bg-success{% else %}bg-warning{% endif %}" 
+                                 role="progressbar" 
+                                 style="width: {% widthratio fee.amount|default:1 balance|default:1 100 %}%">
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if payments %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Method</th>
+                                    <th>Processed By</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in payments %}
+                                <tr>
+                                    <td>{{ payment.payment_date|date:"d M Y" }}</td>
+                                    <td>₹{{ payment.amount }}</td>
+                                    <td>{{ payment.payment_method }}</td>
+                                    <td>{{ payment.processed_by.get_full_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No payments recorded for this fee.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Record Payment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    {{ form.as_p }}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

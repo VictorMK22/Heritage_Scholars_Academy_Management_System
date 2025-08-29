@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css" rel="stylesheet">
+<style>
+    .activity-item {
+        transition: all 0.2s ease;
+    }
+    .activity-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .empty-state {
+        padding: 3rem 1rem;
+        text-align: center;
+        color: #6c757d;
+    }
+    .empty-state i {
+        font-size: 4rem;
+        opacity: 0.5;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Display any messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <i class="bi bi-{% if message.tags == 'error' %}exclamation-triangle{% elif message.tags == 'success' %}check-circle{% elif message.tags == 'warning' %}exclamation-circle{% else %}info-circle{% endif %} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <div>
+                <h4 class="mb-0">
+                    <i class="bi bi-activity me-2"></i>Activity Log
+                </h4>
+                <small class="opacity-75">Academic Year: {{ current_academic_year }}</small>
+            </div>
+            <a href="{% url 'teachers:dashboard' %}" class="btn btn-light btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+            </a>
+        </div>
+       
+        <div class="card-body">
+            <!-- Assignments Section -->
+            <div class="mb-5">
+                <h5 class="d-flex justify-content-between align-items-center mb-3">
+                    <span>
+                        <i class="bi bi-file-earmark-text me-2 text-primary"></i>
+                        Recent Assignments
+                        <small class="text-muted ms-2">({{ current_academic_year }})</small>
+                    </span>
+                    <span class="badge bg-primary rounded-pill">{{ assignments|length }}</span>
+                </h5>
+               
+                {% if assignments %}
+                <div class="list-group">
+                    {% for assignment in assignments %}
+                    <div class="list-group-item list-group-item-action activity-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="me-3 flex-grow-1">
+                                <div class="d-flex align-items-center mb-1">
+                                    <i class="bi bi-file-earmark-text text-primary me-2"></i>
+                                    <h6 class="mb-0">{{ assignment.title }}</h6>
+                                </div>
+                                <div class="d-flex flex-wrap gap-1 mt-2">
+                                    <span class="badge bg-primary">{{ assignment.subject.name }}</span>
+                                    <span class="badge bg-secondary">{{ assignment.class_assigned.name }}</span>
+                                    <span class="badge {% if assignment.is_past_due %}bg-danger{% else %}bg-success{% endif %}">
+                                        Due: {{ assignment.due_date|date:"M d, Y H:i" }}
+                                    </span>
+                                    {% if assignment.is_published %}
+                                        <span class="badge bg-info">Published</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">Draft</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted d-block">Created:</small>
+                                <small class="text-muted">{{ assignment.date_created|date:"M d, Y" }}</small>
+                                <div class="mt-1">
+                                    <a href="{% url 'teachers:assignment_detail' assignment.id %}" 
+                                       class="btn btn-sm btn-outline-primary"
+                                       title="View assignment details">
+                                        <i class="bi bi-eye"></i> Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-file-earmark-text d-block"></i>
+                    <h5>No assignments created yet</h5>
+                    <p class="text-muted">No assignments found for the {{ current_academic_year }} academic year.</p>
+                    <a href="{% url 'teachers:create_assignment' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-1"></i> Create Your First Assignment
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Attendance Section (only for class teachers) -->
+            {% if is_class_teacher %}
+            <hr class="my-4">
+            <div>
+                <h5 class="d-flex justify-content-between align-items-center mb-3">
+                    <span>
+                        <i class="bi bi-clipboard-check me-2 text-success"></i>
+                        Recent Attendance Records
+                        <small class="text-muted ms-2">(Last 50)</small>
+                    </span>
+                    <span class="badge bg-success rounded-pill">{{ attendances|length }}</span>
+                </h5>
+               
+                {% if attendances %}
+                <div class="list-group">
+                    {% for attendance in attendances %}
+                    <div class="list-group-item list-group-item-action activity-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="me-3 flex-grow-1">
+                                <div class="d-flex align-items-center mb-1">
+                                    <i class="bi bi-person-check text-success me-2"></i>
+                                    <h6 class="mb-0">{{ attendance.student.full_name }}</h6>
+                                </div>
+                                <div class="d-flex flex-wrap gap-1 mt-2">
+                                    <span class="badge {% if attendance.status == 'Present' %}bg-success{% elif attendance.status == 'Absent' %}bg-danger{% elif attendance.status == 'Late' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                                        <i class="bi bi-{% if attendance.status == 'Present' %}check-circle{% elif attendance.status == 'Absent' %}x-circle{% elif attendance.status == 'Late' %}clock{% else %}question-circle{% endif %} me-1"></i>
+                                        {{ attendance.get_status_display }}
+                                    </span>
+                                    <span class="badge bg-light text-dark">{{ attendance.student.current_class.name }}</span>
+                                    {% if attendance.remarks %}
+                                        <span class="badge bg-info" title="{{ attendance.remarks }}">Has Notes</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted d-block">Date:</small>
+                                <small class="text-muted">{{ attendance.date|date:"M d, Y" }}</small>
+                                <div class="mt-1">
+                                    <a href="{% url 'teachers:attendance_detail' attendance.id %}" 
+                                       class="btn btn-sm btn-outline-success"
+                                       title="View attendance details">
+                                        <i class="bi bi-eye"></i> Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-clipboard-check d-block"></i>
+                    <h5>No attendance records found</h5>
+                    <p class="text-muted">
+                        {% if not has_current_assignments %}
+                            You don't have any current class assignments to take attendance for.
+                        {% else %}
+                            No attendance records found for your current classes.
+                        {% endif %}
+                    </p>
+                    {% if has_current_assignments %}
+                    <a href="{% url 'teachers:take_attendance' %}" class="btn btn-success">
+                        <i class="bi bi-clipboard-check me-1"></i> Take Attendance
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Summary Section -->
+            <div class="mt-5 pt-4 border-top">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h5 class="card-title text-primary">{{ assignments|length }}</h5>
+                                <p class="card-text small">Assignments Created</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% if is_class_teacher %}
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h5 class="card-title text-success">{{ attendances|length }}</h5>
+                                <p class="card-text small">Attendance Records</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h5 class="card-title text-info">{{ current_academic_year }}</h5>
+                                <p class="card-text small">Academic Year</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h5 class="card-title text-warning">
+                                    {% if is_class_teacher %}Class{% else %}Subject{% endif %}
+                                </h5>
+                                <p class="card-text small">Teacher Role</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add tooltips to badges with titles
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+
+    // Auto-dismiss alerts after 5 seconds
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(function(alert) {
+        setTimeout(function() {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        }, 5000);
+    });
+});
+</script>
+{% endblock %}

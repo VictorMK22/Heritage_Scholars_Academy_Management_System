@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Assignments</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Class</th>
+                <th>Due Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for assignment in assignments %}
+            <tr>
+                <td><a href="{% url 'academics:assignment_detail' assignment.pk %}">{{ assignment.title }}</a></td>
+                <td>{{ assignment.class_assigned.name }}</td>
+                <td>{{ assignment.due_date|date:"Y-m-d" }}</td>
+                <td>{% if assignment.is_past_due %}Overdue{% else %}Active{% endif %}</td>
+                <td>
+                    <a href="{% url 'academics:assignment_update' assignment.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                    <a href="{% url 'academics:assignment_delete' assignment.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'academics:assignment_create' %}" class="btn btn-primary">Create Assignment</a>
+</div>
+{% endblock %}

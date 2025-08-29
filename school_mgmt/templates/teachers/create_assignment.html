@@ -1,0 +1,181 @@
+<!-- Improved create_assignment.html with better error handling -->
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h3><i class="bi bi-file-earmark-plus me-2"></i>Create New Assignment</h3>
+        </div>
+        <div class="card-body">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        <i class="bi bi-{% if message.tags == 'error' %}exclamation-triangle{% elif message.tags == 'success' %}check-circle{% elif message.tags == 'warning' %}exclamation-circle{% else %}info-circle{% endif %} me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if not has_subjects %}
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>No subjects available!</strong> You don't have any subjects assigned for the current academic year. 
+                    Please contact the administration to get subjects assigned before creating assignments.
+                </div>
+                <div class="text-center">
+                    <a href="{% url 'teachers:dashboard' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            {% else %}
+                <form method="POST" enctype="multipart/form-data" id="assignmentForm">
+                    {% csrf_token %}
+                   
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Assignment Title <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="title" name="title" required maxlength="200">
+                        <div class="form-text">Enter a clear, descriptive title for the assignment</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="description" name="description" rows="5" required maxlength="1000"></textarea>
+                        <div class="form-text">Provide detailed instructions and requirements</div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="subject" class="form-label">Subject <span class="text-danger">*</span></label>
+                            <select class="form-select" id="subject" name="subject" required>
+                                <option value="" selected disabled>Select Subject</option>
+                                {% for subject in subjects %}
+                                    <option value="{{ subject.id }}">{{ subject.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Choose from your assigned subjects</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="points" class="form-label">Points (Max 1000) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="points" name="points"
+                                   min="1" max="1000" value="100" required>
+                            <div class="form-text">Maximum points students can earn</div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="due_date" class="form-label">Due Date & Time <span class="text-danger">*</span></label>
+                            <input type="datetime-local" class="form-control" id="due_date" name="due_date"
+                                   min="{{ min_date }}" required>
+                            <div class="form-text">When the assignment is due</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="attachment" class="form-label">Attachment (Optional)</label>
+                            <input type="file" class="form-control" id="attachment" name="attachment"
+                                   accept=".pdf,.doc,.docx,.txt,.rtf,.odt">
+                            <div class="form-text">Supported: PDF, DOC, DOCX, TXT, RTF, ODT (Max 10MB)</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="is_published" name="is_published">
+                        <label class="form-check-label" for="is_published">
+                            Publish immediately
+                        </label>
+                        <div class="form-text">If checked, students can see and submit to this assignment right away</div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a href="{% url 'teachers:dashboard' %}" class="btn btn-secondary me-md-2">
+                            <i class="bi bi-x-circle me-1"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="bi bi-save me-1"></i> Create Assignment
+                        </button>
+                    </div>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('assignmentForm');
+    if (!form) return; // Exit if form doesn't exist (no subjects case)
+
+    // Set minimum datetime for due date
+    const dueDateField = document.getElementById('due_date');
+    if (dueDateField) {
+        const now = new Date();
+        const timezoneOffset = now.getTimezoneOffset() * 60000;
+        const localISOTime = (new Date(now - timezoneOffset)).toISOString().slice(0, 16);
+        dueDateField.min = localISOTime;
+    }
+
+    // Validate points input
+    const pointsInput = document.getElementById('points');
+    if (pointsInput) {
+        pointsInput.addEventListener('change', function() {
+            if (this.value > 1000) {
+                this.value = 1000;
+            } else if (this.value <script 1) {
+                this.value = 1;
+            }
+        });
+    }
+
+    // File size validation
+    const attachmentInput = document.getElementById('attachment');
+    if (attachmentInput) {
+        attachmentInput.addEventListener('change', function() {
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            if (this.files[0] && this.files[0].size > maxSize) {
+                alert('File size must be less than 10MB');
+                this.value = '';
+            }
+        });
+    }
+
+    // Form submission handling
+    const submitBtn = document.getElementById('submitBtn');
+    form.addEventListener('submit', function() {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Creating...';
+    });
+
+    // Character count for title and description
+    const titleInput = document.getElementById('title');
+    const descriptionInput = document.getElementById('description');
+    
+    if (titleInput) {
+        const titleCounter = document.createElement('div');
+        titleCounter.className = 'form-text';
+        titleCounter.innerHTML = `<span id="titleCount">0</span>/200 characters`;
+        titleInput.parentNode.appendChild(titleCounter);
+        
+        titleInput.addEventListener('input', function() {
+            document.getElementById('titleCount').textContent = this.value.length;
+        });
+    }
+    
+    if (descriptionInput) {
+        const descCounter = document.createElement('div');
+        descCounter.className = 'form-text';
+        descCounter.innerHTML = `<span id="descCount">0</span>/1000 characters`;
+        descriptionInput.parentNode.appendChild(descCounter);
+        
+        descriptionInput.addEventListener('input', function() {
+            document.getElementById('descCount').textContent = this.value.length;
+        });
+    }
+});
+</script>
+{% endblock%}

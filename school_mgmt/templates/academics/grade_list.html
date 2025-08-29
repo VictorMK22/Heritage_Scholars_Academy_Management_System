@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Grades</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Student</th>
+                <th>Subject</th>
+                <th>Grade</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for grade in grades %}
+            <tr>
+                <td>{{ grade.student.user.get_full_name }}</td>
+                <td>{{ grade.subject.name }}</td>
+                <td>{{ grade.marks }}</td>
+                <td>
+                    <a href="{% url 'academics:grade_update' grade.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                    <a href="{% url 'academics:grade_delete' grade.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'academics:grade_create' %}" class="btn btn-primary">Add Grade</a>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-3">Assign Guardian to Students</h2>
+    
+    <form method="post" class="card p-4 shadow-sm">
+        {% csrf_token %}
+
+        <!-- CRITICAL: Django Admin Action Hidden Fields -->
+        <input type="hidden" name="action" value="assign_to_guardian">
+        <input type="hidden" name="select_across" value="0">
+        {% for student in students %}
+        <input type="hidden" name="_selected_action" value="{{ student.pk }}">
+        {% endfor %}
+
+        <!-- Guardian Selection -->
+        <div class="mb-3">
+            <label for="guardian" class="form-label fw-bold">Select Guardian:</label>
+            <select name="guardian" id="guardian" class="form-select" required>
+                <option value="">-- Select a Guardian --</option>
+                {% for guardian in guardians %}
+                <option value="{{ guardian.id }}">{{ guardian.user.get_full_name }}</option>
+                {% empty %}
+                <option disabled>No guardians available</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Students List -->
+        <div class="mb-3">
+            <p class="fw-semibold">The following students will be assigned to the selected guardian:</p>
+            <ul class="list-group mb-3">
+                {% for student in students %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>{{ student.user.get_full_name }} ({{ student.admission_number }})</span>
+                </li>
+                {% empty %}
+                <li class="list-group-item text-muted">No students available for assignment</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex gap-2">
+            <button type="submit" name="apply" class="btn btn-primary">Assign Guardian</button>
+            <a href="{% url 'admin:students_student_changelist' %}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

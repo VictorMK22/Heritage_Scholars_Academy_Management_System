@@ -1,0 +1,378 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Class Header -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4>{{ page_title }}</h4>
+                <div>
+                    {% if perms.academics.change_class %}
+                    <a href="{% url 'academics:class_update' class_obj.pk %}" class="btn btn-light btn-sm me-2">
+                        <i class="fas fa-edit"></i> Edit Class
+                    </a>
+                    {% endif %}
+                    {% if perms.academics.change_class %}
+                    <a href="{% url 'academics:class_assign_teachers' class_obj.pk %}" 
+                       class="btn btn-light btn-sm">
+                        <i class="fas fa-user-edit"></i> Manage Teachers
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Class Teacher:</strong> 
+                        {% if primary_teacher %}
+                            <a href="{% url 'admin:teachers_teacher_change' primary_teacher.pk %}" target="_blank">
+                                {{ primary_teacher.user.get_full_name }}
+                            </a>
+                            <span class="badge bg-success ms-2">Primary</span>
+                        {% else %}
+                            <span class="text-muted">Not assigned</span>
+                        {% endif %}
+                    </p>
+                    <p><strong>Academic Year:</strong> 
+                        {{ class_obj.academic_year|default:"Not set" }}
+                    </p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <span class="badge bg-light text-dark me-2">
+                        <i class="fas fa-chalkboard-teacher"></i> {{ teacher_count }} Teacher{{ teacher_count|pluralize }}
+                    </span>
+                    <span class="badge bg-light text-dark me-2">
+                        <i class="fas fa-book"></i> {{ subjects_data|length }} Subject{{ subjects_data|length|pluralize }}
+                    </span>
+                    <span class="badge bg-light text-dark">
+                        <i class="fas fa-users"></i> {{ student_count }} Student{{ student_count|pluralize }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Teaching Staff Column -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Teaching Staff</h5>
+                    <div>
+                        {% if perms.academics.add_classteaching %}
+                        <a href="{% url 'admin:academics_classteaching_add' %}?classroom={{ class_obj.pk }}"
+                           class="btn btn-light btn-sm"
+                           target="_blank">
+                            <i class="fas fa-plus"></i> Quick Add
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% if teaching_assignments %}
+                        <div class="list-group list-group-flush">
+                            {% for assignment in teaching_assignments %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            <a href="{% url 'admin:teachers_teacher_change' assignment.teacher.pk %}"
+                                               target="_blank">
+                                                {{ assignment.teacher.user.get_full_name }}
+                                            </a>
+                                            {% if assignment.is_primary %}
+                                            <span class="badge bg-success ms-2">Primary</span>
+                                            {% endif %}
+                                        </h6>
+                                        <div class="mt-2">
+                                            <span class="text-muted small">
+                                                <i class="fas fa-calendar-day"></i> 
+                                                Assigned: {{ assignment.date_assigned|date:"M d, Y" }}
+                                            </span>
+                                        </div>
+                                        <div class="mt-2">
+                                            {% if assignment.subjects.all %}
+                                                <strong>Subjects:</strong>
+                                                {% for subject in assignment.subjects.all %}
+                                                    <span class="badge bg-info me-1 mb-1">
+                                                        <a href="{% url 'admin:academics_subject_change' subject.pk %}" 
+                                                           target="_blank"
+                                                           class="text-white text-decoration-none">
+                                                            {{ subject.name }}
+                                                        </a>
+                                                    </span>
+                                                {% endfor %}
+                                            {% else %}
+                                                <span class="text-muted small">No subjects assigned</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="btn-group">
+                                        {% if perms.academics.change_classteaching %}
+                                        <a href="{% url 'admin:academics_classteaching_change' assignment.pk %}"
+                                           class="btn btn-sm btn-outline-secondary"
+                                           target="_blank"
+                                           title="Edit Assignment">
+                                            <i class="fas fa-cog"></i>
+                                        </a>
+                                        {% endif %}
+                                        {% if not assignment.is_primary and perms.academics.change_classteaching %}
+                                        <button class="btn btn-sm btn-outline-success quick-assign-btn"
+                                                data-teacher-id="{{ assignment.teacher.pk }}"
+                                                title="Set as Primary">
+                                            <i class="fas fa-star"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info m-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No teachers assigned to this class. 
+                            <a href="{% url 'academics:class_assign_teachers' class_obj.pk %}" 
+                               class="alert-link">
+                                Assign teachers now
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Subjects Column -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Class Subjects</h5>
+                    {% if perms.academics.add_subject %}
+                    <a href="{% url 'admin:academics_subject_add' %}?class_assigned={{ class_obj.pk }}"
+                       class="btn btn-light btn-sm"
+                       target="_blank">
+                        <i class="fas fa-plus"></i> Add Subject
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="card-body p-0">
+                    {% if subjects_data %}
+                        <div class="list-group list-group-flush">
+                            {% for subject in subjects_data %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            <a href="{% url 'admin:academics_subject_change' subject.subject.pk %}"
+                                               target="_blank">
+                                                {{ subject.subject.name }}
+                                            </a>
+                                        </h6>
+                                        <small class="text-muted">
+                                            <i class="fas fa-chalkboard-teacher"></i>
+                                            Teacher: 
+                                            {% if subject.teacher_id %}
+                                            <a href="{% url 'admin:teachers_teacher_change' subject.teacher_id %}"
+                                               target="_blank">
+                                                {{ subject.teacher_name }}
+                                            </a>
+                                            {% else %}
+                                                {{ subject.teacher_name|default:"Not assigned" }}
+                                            {% endif %}
+                                            {% if subject.is_primary %}
+                                            <span class="badge bg-success ms-1">Primary</span>
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                    <div class="btn-group">
+                                        {% if perms.academics.change_subject %}
+                                        <a href="{% url 'academics:subject_update' subject.subject.pk %}" 
+                                           class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info m-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No subjects assigned to this class.
+                            {% if perms.academics.add_subject %}
+                            <a href="{% url 'admin:academics_subject_add' %}?class_assigned={{ class_obj.pk }}"
+                               class="alert-link"
+                               target="_blank">
+                                Add subject now
+                            </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Teacher Assignment Overview -->
+    <div class="card mt-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Teacher Assignment Overview</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-primary bg-opacity-10 p-3 rounded me-3">
+                            <i class="fas fa-chalkboard-teacher fa-2x text-primary"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Total Teachers</h6>
+                            <p class="mb-0 fs-4">{{ teacher_count }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-success bg-opacity-10 p-3 rounded me-3">
+                            <i class="fas fa-star fa-2x text-success"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Primary Teacher</h6>
+                            <p class="mb-0 fs-4">
+                                {% if primary_teacher %}
+                                    {{ primary_teacher.user.get_full_name }}
+                                {% else %}
+                                    <span class="text-muted">None</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-info bg-opacity-10 p-3 rounded me-3">
+                            <i class="fas fa-book fa-2x text-info"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Subjects Covered</h6>
+                            <p class="mb-0 fs-4">{{ subjects_data|length }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if teaching_assignments %}
+            <div class="mt-4">
+                <h6>Teacher Assignment Distribution</h6>
+                <div class="progress" style="height: 25px;">
+                    {% for assignment in teaching_assignments %}
+                    <div class="progress-bar 
+                             {% cycle 'bg-primary' 'bg-success' 'bg-info' 'bg-warning' 'bg-danger' %}" 
+                         role="progressbar" 
+                         style="width: {% widthratio 1 teaching_assignments|length 100 %}%;"
+                         title="{{ assignment.teacher.user.get_full_name }}{% if assignment.is_primary %} (Primary){% endif %}">
+                        {% if assignment.is_primary %}
+                        <i class="fas fa-star"></i>
+                        {% else %}
+                        <i class="fas fa-user"></i>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                <small class="text-muted">Hover over segments to see teacher names</small>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Teacher assignment progress bar tooltips
+    const progressBars = document.querySelectorAll('.progress-bar');
+    progressBars.forEach(bar => {
+        bar.addEventListener('mouseover', function() {
+            const tooltip = document.createElement('div');
+            tooltip.className = 'assignment-tooltip';
+            tooltip.textContent = this.title;
+            tooltip.style.position = 'absolute';
+            tooltip.style.backgroundColor = 'rgba(0,0,0,0.8)';
+            tooltip.style.color = 'white';
+            tooltip.style.padding = '5px 10px';
+            tooltip.style.borderRadius = '4px';
+            tooltip.style.zIndex = '1000';
+            tooltip.style.top = (this.getBoundingClientRect().top - 40) + 'px';
+            tooltip.style.left = (this.getBoundingClientRect().left) + 'px';
+            document.body.appendChild(tooltip);
+            
+            this.addEventListener('mouseout', function() {
+                if (document.body.contains(tooltip)) {
+                    document.body.removeChild(tooltip);
+                }
+            });
+        });
+    });
+    
+    // Quick assign primary teacher buttons
+    const quickAssignButtons = document.querySelectorAll('.quick-assign-btn');
+    quickAssignButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (!confirm('Set this teacher as primary for this class?')) return;
+            
+            const teacherId = this.dataset.teacherId;
+            const classId = {{ class_obj.pk }};
+            
+            fetch(`/academics/api/quick-assign-primary/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    teacher_id: teacherId,
+                    class_id: classId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Error updating primary teacher');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while updating the primary teacher');
+            });
+        });
+    });
+});
+</script>
+<style>
+.assignment-tooltip {
+    pointer-events: none;
+    font-size: 0.875rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.progress-bar {
+    cursor: help;
+    transition: width 0.6s ease;
+}
+.progress-bar:hover {
+    opacity: 0.9;
+}
+.quick-assign-btn:hover {
+    color: #fff;
+    background-color: var(--bs-success);
+    border-color: var(--bs-success);
+}
+</style>
+{% endblock %}

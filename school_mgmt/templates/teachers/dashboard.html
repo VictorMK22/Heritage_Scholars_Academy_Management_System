@@ -1,0 +1,282 @@
+<!-- Fixed dashboard.html with proper Bootstrap loading and error handling -->
+{% extends 'base.html' %}
+{% load static %}
+
+<!-- Ensure Bootstrap CSS is loaded -->
+{% block extra_css %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css" rel="stylesheet">
+<style>
+    .teacher-stats {
+        background-color: #f8f9fa;
+        border-radius: 0.5rem;
+        padding: 1rem;
+    }
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+    }
+    .badge.bg-light {
+        border: 1px solid #dee2e6;
+    }
+    .profile-placeholder {
+        width: 120px;
+        height: 120px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-size: 3rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Display any messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row">
+        <!-- Teacher Profile Column -->
+        <div class="col-md-4">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        {% if teacher.profile_picture %}
+                            <img src="{{ teacher.profile_picture.url }}" class="rounded-circle" width="120" height="120" alt="Profile">
+                        {% else %}
+                            <div class="rounded-circle profile-placeholder d-flex align-items-center justify-content-center mx-auto">
+                                <i class="bi bi-person-fill"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <h4 class="card-title text-center">{{ teacher.full_name }}</h4>
+                    <hr>
+                    <div class="teacher-details">
+                        <p><strong>Employee ID:</strong> {{ teacher.employee_id }}</p>
+                        <p><strong>Specialization:</strong> {{ teacher.specialization }}</p>
+                        <p><strong>Qualification:</strong> {{ teacher.qualification|default:"Not specified" }}</p>
+                        
+                        <!-- Teacher Statistics -->
+                        <div class="teacher-stats mt-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Assignments:</span>
+                                <span class="badge bg-primary">{{ assignment_count }}</span>
+                            </div>
+                            {% if teacher.is_class_teacher and primary_class %}
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Students:</span>
+                                    <span class="badge bg-success">{{ student_count }}</span>
+                                </div>
+                                <div class="alert alert-primary mt-3">
+                                    <strong>Class Teacher for:</strong> {{ primary_class.name }}
+                                </div>
+                            {% elif teacher.is_class_teacher and not has_current_assignments %}
+                                <div class="alert alert-warning mt-3">
+                                    <small><strong>Note:</strong> Marked as class teacher but no current class assignments.</small>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions Card -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if has_current_assignments %}
+                            <a href="{% url 'teachers:create_assignment' %}" class="btn btn-outline-primary">
+                                <i class="bi bi-file-earmark-plus"></i> Create Assignment
+                            </a>
+                        {% else %}
+                            <button class="btn btn-outline-secondary" disabled title="No classes assigned">
+                                <i class="bi bi-file-earmark-plus"></i> Create Assignment
+                            </button>
+                        {% endif %}
+                        
+                        <a href="{% url 'teachers:grade_submissions' %}" class="btn btn-outline-success">
+                            <i class="bi bi-check-circle"></i> Grade Submissions
+                        </a>
+                        
+                        {% if teacher.is_class_teacher and has_current_assignments %}
+                            <a href="{% url 'teachers:take_attendance' %}" class="btn btn-outline-info">
+                                <i class="bi bi-clipboard-check"></i> Take Attendance
+                            </a>
+                        {% elif teacher.is_class_teacher %}
+                            <button class="btn btn-outline-secondary" disabled title="No current class assignments">
+                                <i class="bi bi-clipboard-check"></i> Take Attendance
+                            </button>
+                        {% endif %}
+                        
+                        <a href="{% url 'teachers:class_list' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-list-ul"></i> View All Classes
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upcoming Assignments Card -->
+            {% if upcoming_assignments %}
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">Upcoming Deadlines</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for assignment in upcoming_assignments %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>{{ assignment.title }}</strong>
+                                    <div class="text-muted small">{{ assignment.subject.name }}</div>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-light text-dark">{{ assignment.due_date|date:"M d" }}</span>
+                                    <div class="text-muted small">{{ assignment.class_assigned.name }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Main Content Column -->
+        <div class="col-md-8">
+            <!-- Current Classes Card -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Currently Teaching ({{ current_academic_year }})</h5>
+                    <div>
+                        <span class="badge bg-primary me-2">{{ current_assignments|length }} classes</span>
+                        <span class="badge bg-success">{{ assignment_count }} assignments</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if current_assignments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Class</th>
+                                    <th>Subjects</th>
+                                    <th>Students</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for assignment in current_assignments %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ assignment.classroom.name }}</strong>
+                                        {% if assignment.is_primary %}
+                                        <span class="badge bg-info ms-2">Primary</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% for subject in assignment.subjects.all %}
+                                        <span class="badge bg-primary mb-1">{{ subject.name }}</span>
+                                        {% endfor %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ assignment.classroom.student_count|default:"0" }}</span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'teachers:class_assignments' assignment.classroom.id %}"
+                                           class="btn btn-sm btn-outline-primary"
+                                           title="View assignments">
+                                            <i class="bi bi-list-task"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info mb-0">
+                        <i class="bi bi-info-circle me-2"></i>
+                        No classes assigned for {{ current_academic_year }} academic year.
+                        {% if teacher.is_class_teacher %}
+                        <br><small>Please contact administration to resolve class teacher assignment issue.</small>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recent Activity Card -->
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Recent Activity</h5>
+                    <a href="{% url 'teachers:activity_log' %}" class="btn btn-sm btn-outline-secondary">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for assignment in recent_assignments %}
+                        <a href="{% url 'teachers:assignment_detail' assignment.id %}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <div>
+                                    <i class="bi bi-file-earmark-text text-primary me-2"></i>
+                                    <strong>Created Assignment:</strong> {{ assignment.title }}
+                                </div>
+                                <small class="text-muted">{{ assignment.date_created|timesince }} ago</small>
+                            </div>
+                            <div class="ps-4 mt-1">
+                                <span class="badge bg-light text-dark">{{ assignment.subject.name }}</span>
+                                <span class="badge bg-light text-dark">{{ assignment.class_assigned.name }}</span>
+                                <span class="badge {% if assignment.is_past_due %}bg-danger{% else %}bg-success{% endif %}">
+                                    Due: {{ assignment.due_date|date:"M d" }}
+                                </span>
+                            </div>
+                        </a>
+                        {% endfor %}
+
+                        {% if teacher.is_class_teacher and recent_attendance %}
+                        {% for attendance in recent_attendance %}
+                        <a href="{% url 'teachers:attendance_detail' attendance.id %}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <div>
+                                    <i class="bi bi-clipboard-check text-success me-2"></i>
+                                    <strong>Recorded Attendance:</strong> {{ attendance.get_status_display }}
+                                </div>
+                                <small class="text-muted">{{ attendance.date|timesince }} ago</small>
+                            </div>
+                            <div class="ps-4 mt-1">
+                                <span class="badge bg-light text-dark">{{ attendance.student.full_name }}</span>
+                                <span class="badge bg-light text-dark">{{ attendance.student.current_class.name }}</span>
+                            </div>
+                        </a>
+                        {% endfor %}
+                        {% endif %}
+
+                        {% if not recent_assignments and not recent_attendance %}
+                        <div class="list-group-item">
+                            <div class="text-center text-muted py-3">
+                                <i class="bi bi-clock-history fs-1 mb-2 d-block"></i>
+                                No recent activity found for {{ current_academic_year }}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<!-- Ensure Bootstrap JS is loaded -->
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

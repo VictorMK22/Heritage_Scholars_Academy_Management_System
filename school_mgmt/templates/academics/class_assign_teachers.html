@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h3>Assign Teachers to {{ class_obj.name }}</h3>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <h5>Select Teachers</h5>
+                    <div class="form-group">
+                        {{ form.teachers.errors }}
+                        <div class="row">
+                            {% for teacher in form.teachers %}
+                            <div class="col-md-4 mb-2">
+                                <div class="form-check">
+                                    {{ teacher.tag }}
+                                    <label class="form-check-label" for="{{ teacher.id_for_label }}">
+                                        {{ teacher.choice_label }}
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <small class="form-text text-muted">{{ form.teachers.help_text }}</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'academics:class_detail' class_obj.id %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to Class
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Save Assignments
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

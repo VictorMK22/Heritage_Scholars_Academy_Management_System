@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Report - {{ student.user.get_full_name }}</title>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #3498db; margin-top: 20px; }
+        .info-grid { display: grid; grid-template-columns: 150px 1fr; gap: 10px; margin: 15px 0; }
+        .info-label { font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .footer { margin-top: 30px; font-size: 0.8em; text-align: right; }
+    </style>
+</head>
+<body>
+    <h1>{{ student.user.get_full_name }} ({{ student.admission_number }})</h1>
+    
+    <div class="info-grid">
+        <div class="info-label">Class:</div>
+        <div>{{ student.current_class }}</div>
+        
+        <div class="info-label">Date of Birth:</div>
+        <div>{{ student.date_of_birth|date:"F j, Y" }} (Age: {{ student.age }} years)</div>
+        
+        <div class="info-label">Guardian:</div>
+        <div>{{ student.guardian.user.get_full_name }} ({{ student.guardian.relationship_to_student }})</div>
+        
+        <div class="info-label">Contact:</div>
+        <div>{{ student.user.email }} | {{ student.user.phone }}</div>
+    </div>
+    
+    <h2>Academic Grades</h2>
+    <table>
+        <tr>
+            <th>Subject</th>
+            <th>Marks</th>
+            <th>Term</th>
+        </tr>
+        {% for grade in grades %}
+        <tr>
+            <td>{{ grade.subject }}</td>
+            <td>{{ grade.marks }}</td>
+            <td>{{ grade.term }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="3">No grades recorded</td>
+        </tr>
+        {% endfor %}
+    </table>
+    
+    <h2>Assignment Submissions</h2>
+    <table>
+        <tr>
+            <th>Assignment</th>
+            <th>Submitted On</th>
+            <th>Status</th>
+            <th>Grade</th>
+        </tr>
+        {% for assignment in assignments %}
+        <tr>
+            <td>{{ assignment.assignment.title }}</td>
+            <td>{{ assignment.submission_date|date:"F j, Y" }}</td>
+            <td>{{ assignment.get_status_display }}</td>
+            <td>{{ assignment.grade|default:"-" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">No assignments submitted</td>
+        </tr>
+        {% endfor %}
+    </table>
+    
+    <div class="footer">
+        Generated on {% now "F j, Y" %}
+    </div>
+</body>
+</html>

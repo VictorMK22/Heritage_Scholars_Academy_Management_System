@@ -1,0 +1,67 @@
+{% extends 'fees/base_fees.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Upcoming Due Fees (Next 30 Days)</h2>
+        <div>
+            <a href="{% url 'fees:overdue_fees' %}" class="btn btn-outline-danger me-2">
+                <i class="fas fa-exclamation-triangle"></i> View Overdue
+            </a>
+            <a href="{% url 'fees:fee_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-list"></i> All Fees
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5>Fees Due Soon</h5>
+        </div>
+        <div class="card-body">
+            {% if fees %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Amount</th>
+                            <th>Due Date</th>
+                            <th>Days Left</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for fee in fees %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'fees:student_fee_list' fee.student.id %}">
+                                    {{ fee.student.user.get_full_name }}
+                                </a>
+                            </td>
+                            <td>₹{{ fee.amount }}</td>
+                            <td>{{ fee.due_date|date:"d M Y" }}</td>
+                            <td>
+                                <span class="badge bg-{% if fee.due_date|days_until < 7 %}warning{% else %}info{% endif %}">
+                                    {{ fee.due_date|days_until }} days
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'fees:process_payment' fee.pk %}" class="btn btn-sm btn-success">
+                                    <i class="fas fa-money-bill-wave"></i> Pay Now
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                No fees due in the next 30 days.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

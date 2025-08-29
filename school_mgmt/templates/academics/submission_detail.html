@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Submission Details</h2>
+    <p>Assignment: {{ submission.assignment.title }}</p>
+    <p>Student: {{ submission.student.user.get_full_name }}</p>
+    <p>Submitted: {{ submission.submission_date|date:"Y-m-d H:i" }}</p>
+    <p>Grade: {{ submission.grade|default:"Not graded" }}</p>
+    <p>Feedback: {{ submission.feedback|default:"No feedback" }}</p>
+</div>
+{% endblock %}

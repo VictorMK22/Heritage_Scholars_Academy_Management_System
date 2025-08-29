@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Update Profile</h2>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4>Basic Information</h4>
+                    </div>
+                    <div class="card-body">
+                        {{ user_form|crispy }}
+                    </div>
+                </div>
+                
+                {% if profile_form %}
+                <div class="card">
+                    <div class="card-header">
+                        <h4>{{ user.get_role_display }} Information</h4>
+                    </div>
+                    <div class="card-body">
+                        {{ profile_form|crispy }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                    <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Profile Picture</h4>
+                </div>
+                <div class="card-body text-center">
+                    {% if user.profile_picture and user.profile_picture.url %}
+                        <img src="{{ user.profile_picture.url }}" 
+                             class="img-fluid rounded-circle mb-3" 
+                             style="max-width: 200px; max-height: 200px;"
+                             alt="Profile Picture">
+                    {% else %}
+                        <img src="{% static 'images/default_profile.png' %}" 
+                             class="img-fluid rounded-circle mb-3" 
+                             style="max-width: 200px; max-height: 200px;"
+                             alt="Default Profile">
+                    {% endif %}
+                    
+                    <div class="form-group">
+                        <div class="custom-file">
+                            <input type="file" 
+                                   class="custom-file-input" 
+                                   id="id_profile_picture" 
+                                   name="profile_picture"
+                                   accept="image/*">
+                            <label class="custom-file-label" for="id_profile_picture">
+                                {% if user.profile_picture and user.profile_picture.url %}
+                                    Change picture
+                                {% else %}
+                                    Upload picture
+                                {% endif %}
+                            </label>
+                        </div>
+                        <small class="form-text text-muted">
+                            Recommended size: 200x200 pixels
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Update file input label
+document.getElementById('id_profile_picture').addEventListener('change', function(e) {
+    var fileName = "No file selected";
+    if (this.files && this.files.length > 0) {
+        fileName = this.files[0].name;
+    }
+    var nextSibling = e.target.nextElementSibling;
+    nextSibling.innerText = fileName;
+    
+    // Preview image
+    if (this.files && this.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            document.querySelector('.card-body.text-center img').src = e.target.result;
+        }
+        reader.readAsDataURL(this.files[0]);
+    }
+});
+</script>
+
+<style>
+.custom-file-label::after {
+    content: "Browse";
+}
+</style>
+{% endblock %}

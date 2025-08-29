@@ -1,0 +1,133 @@
+{% extends 'fees/base_fees.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Fee Overview Report</h2>
+        <div>
+            <a href="{% url 'fees:unpaid_fees_report' %}" class="btn btn-outline-danger me-2">
+                <i class="fas fa-exclamation-circle"></i> Unpaid Fees
+            </a>
+            <a href="{% url 'fees:export_fees' %}" class="btn btn-outline-info">
+                <i class="fas fa-file-export"></i> Export Data
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Summary Cards -->
+        <div class="col-md-3 mb-4">
+            <div class="card text-white bg-primary h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Total Fees</h5>
+                    <p class="card-text display-6">{{ total_fees }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="card text-white bg-success h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Paid Fees</h5>
+                    <p class="card-text display-6">{{ paid_fees }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="card text-white bg-danger h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Unpaid Fees</h5>
+                    <p class="card-text display-6">{{ unpaid_fees }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="card text-white bg-warning h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Students with Unpaid</h5>
+                    <p class="card-text display-6">{{ students_with_unpaid }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Amount Summary -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Amount Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Amount</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Total Amount</td>
+                                    <td>₹{{ total_amount|floatformat:2 }}</td>
+                                    <td>100%</td>
+                                </tr>
+                                <tr>
+                                    <td>Paid Amount</td>
+                                    <td>₹{{ paid_amount|floatformat:2 }}</td>
+                                    <td>{% widthratio paid_amount total_amount 100 %}%</td>
+                                </tr>
+                                <tr>
+                                    <td>Unpaid Amount</td>
+                                    <td>₹{{ unpaid_amount|floatformat:2 }}</td>
+                                    <td>{% widthratio unpaid_amount total_amount 100 %}%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Distribution -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Status Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="statusChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('statusChart').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Paid', 'Unpaid'],
+            datasets: [{
+                data: [{{ paid_fees }}, {{ unpaid_fees }}],
+                backgroundColor: [
+                    '#28a745',
+                    '#dc3545'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+});
+</script>
+{% endblock %}

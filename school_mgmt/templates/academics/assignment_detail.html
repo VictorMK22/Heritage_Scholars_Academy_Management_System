@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>{{ assignment.title }}</h2>
+            <p class="text-muted">
+                Due: {{ assignment.due_date|date:"M d, Y H:i" }}
+                {% if assignment.is_past_due %}
+                <span class="badge bg-danger">Past Due</span>
+                {% else %}
+                <span class="badge bg-success">Active</span>
+                {% endif %}
+            </p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'academics:assignment_update' assignment.pk %}" 
+               class="btn btn-warning me-2">
+                <i class="fas fa-edit"></i> Edit
+            </a>
+            <a href="{% url 'academics:assignment_delete' assignment.pk %}" 
+               class="btn btn-danger">
+                <i class="fas fa-trash"></i> Delete
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Assignment Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6>Description</h6>
+                        <p>{{ assignment.description|linebreaks }}</p>
+                    </div>
+                    
+                    {% if assignment.attachment %}
+                    <div class="mb-3">
+                        <h6>Attachment</h6>
+                        <a href="{{ assignment.attachment.url }}" class="btn btn-outline-primary">
+                            <i class="fas fa-download"></i> Download
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Subject</h6>
+                            <p>{{ assignment.subject }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Class</h6>
+                            <p>{{ assignment.class_assigned }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Submissions ({{ assignment.submissions.count }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if assignment.submissions.all %}
+                    <div class="list-group">
+                        {% for submission in assignment.submissions.all %}
+                        <a href="{% url 'academics:submission_detail' submission.pk %}" 
+                           class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ submission.student.user.get_full_name }}</h6>
+                                <small>{{ submission.submission_date|timesince }} ago</small>
+                            </div>
+                            <p class="mb-1">
+                                {% if submission.grade %}
+                                <span class="badge bg-success">
+                                    Grade: {{ submission.grade }}/{{ assignment.points }}
+                                </span>
+                                {% else %}
+                                <span class="badge bg-warning">Not graded</span>
+                                {% endif %}
+                            </p>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No submissions yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

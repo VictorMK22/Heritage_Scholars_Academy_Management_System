@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Classes</h2>
+        <a href="{% url 'academics:class_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Class
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            {% if class_data %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Primary Teacher</th>
+                            <th>Subjects</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for data in class_data %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'academics:class_detail' data.class.pk %}">
+                                    {{ data.class.name }}
+                                </a>
+                            </td>
+                            <td>
+                                {% if data.primary_teacher %}
+                                    {{ data.primary_teacher.user.get_full_name }}
+                                {% else %}
+                                    <span class="text-muted">Not assigned</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if data.subjects %}
+                                    {% for subject in data.subjects|slice:":3" %}
+                                        <span class="badge bg-info">{{ subject.name }}</span>
+                                    {% endfor %}
+                                    {% if data.subjects|length > 3 %}
+                                        <span class="badge bg-secondary">+{{ data.subjects|length|add:"-3" }} more</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">None</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'academics:class_update' data.class.pk %}" 
+                                       class="btn btn-warning">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'academics:class_delete' data.class.pk %}" 
+                                       class="btn btn-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                No classes found. Would you like to <a href="{% url 'academics:class_create' %}">add one</a>?
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

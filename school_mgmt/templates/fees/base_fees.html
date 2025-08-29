@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block sidebar %}
+<div class="list-group">
+    <a href="{% url 'fees:fee_list' %}" class="list-group-item list-group-item-action">All Fees</a>
+    <a href="{% url 'fees:upcoming_due_fees' %}" class="list-group-item list-group-item-action">Upcoming Due</a>
+    <a href="{% url 'fees:overdue_fees' %}" class="list-group-item list-group-item-action">Overdue Fees</a>
+    <a href="{% url 'fees:payment_history' %}" class="list-group-item list-group-item-action">Payment History</a>
+    <a href="{% url 'fees:fee_overview_report' %}" class="list-group-item list-group-item-action">Reports</a>
+</div>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Left Column - Profile Info -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Profile Picture</h3>
+                </div>
+                <div class="card-body text-center">
+                    {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" 
+                             class="img-fluid rounded-circle mb-3" 
+                             style="width: 200px; height: 200px; object-fit: cover;"
+                             alt="Profile Picture">
+                    {% else %}
+                        <img src="{% static 'images/default_profile.png' %}" 
+                             class="img-fluid rounded-circle mb-3" 
+                             style="width: 200px; height: 200px; object-fit: cover;"
+                             alt="Default Profile">
+                    {% endif %}
+                    <h4>{{ user.get_full_name }}</h4>
+                    <span class="badge bg-{{ user.is_admin|yesno:'danger,primary' }}">
+                        {{ user.get_role_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - User Details -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Profile Information</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h5>Basic Information</h5>
+                            <p><strong>Username:</strong> {{ user.username }}</p>
+                            <p><strong>Email:</strong> {{ user.email }}</p>
+                            <p><strong>Phone:</strong> {{ user.phone|default:"Not provided" }}</p>
+                            <p><strong>Date of Birth:</strong> {{ user.date_of_birth|date:"F d, Y"|default:"Not provided" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Contact Information</h5>
+                            <p><strong>Address:</strong></p>
+                            <p>{{ user.address|linebreaks|default:"Not provided" }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Role-Specific Information -->
+                    {% if user.is_student and user.student %}
+                    <div class="border-top pt-3">
+                        <h5>Student Information</h5>
+                        <p><strong>Admission Number:</strong> {{ user.student.admission_number }}</p>
+                        <!-- Add more student-specific fields as needed -->
+                    </div>
+                    {% elif user.is_teacher and user.teacher %}
+                    <div class="border-top pt-3">
+                        <h5>Teacher Information</h5>
+                        <p><strong>Employee ID:</strong> {{ user.teacher.employee_id }}</p>
+                        <!-- Add more teacher-specific fields as needed -->
+                    </div>
+                    {% elif user.is_admin and user.admin %}
+                    <div class="border-top pt-3">
+                        <h5>Admin Information</h5>
+                        <p><strong>Employee ID:</strong> {{ user.admin.employee_id }}</p>
+                        <p><strong>Department:</strong> {{ user.admin.department }}</p>
+                    </div>
+                    {% endif %}
+
+                    <div class="mt-4">
+                        <a href="{% url 'accounts:profile_update' %}" class="btn btn-primary">
+                            <i class="fas fa-edit"></i> Update Profile
+                        </a>
+                        <a href="#" class="btn btn-outline-secondary">
+                            <i class="fas fa-lock"></i> Change Password
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        margin-bottom: 20px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .card-header {
+        padding: 15px 20px;
+    }
+    .badge {
+        font-size: 0.9rem;
+        padding: 5px 10px;
+    }
+    .bg-primary {
+        background-color: #007bff!important;
+    }
+</style>
+{% endblock %}

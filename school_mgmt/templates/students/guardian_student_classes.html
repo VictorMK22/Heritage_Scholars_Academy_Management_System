@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2>My Students' Class Assignments</h2>
+    
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Student</th>
+                <th>Class</th>
+                <th>Class Teacher</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for student in students %}
+            <tr>
+                <td>{{ student.user.get_full_name }}</td>
+                <td>
+                    {% if student.current_class %}
+                        {{ student.current_class.name }}
+                    {% else %}
+                        <span class="text-muted">Not assigned</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if student.current_class and student.current_class.get_primary_teacher %}
+                        {{ student.current_class.get_primary_teacher.user.get_full_name }}
+                    {% else %}
+                        <span class="text-muted">N/A</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3">No students found under your care.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends 'fees/base_fees.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Unpaid Fees Report</h2>
+        <div>
+            <a href="{% url 'fees:fee_overview_report' %}" class="btn btn-outline-primary me-2">
+                <i class="fas fa-chart-pie"></i> Overview
+            </a>
+            <a href="{% url 'fees:export_fees' %}?status=Unpaid" class="btn btn-outline-info">
+                <i class="fas fa-file-export"></i> Export
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5>Unpaid Fee Records</h5>
+        </div>
+        <div class="card-body">
+            {% if fees %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Amount</th>
+                            <th>Due Date</th>
+                            <th>Days Overdue</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for fee in fees %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'fees:student_fee_list' fee.student.id %}">
+                                    {{ fee.student.user.get_full_name }}
+                                </a>
+                            </td>
+                            <td>₹{{ fee.amount }}</td>
+                            <td>{{ fee.due_date|date:"d M Y" }}</td>
+                            <td>
+                                {% if fee.due_date|days_until < 0 %}
+                                    <span class="badge bg-danger">{{ fee.due_date|days_until|absolute_value }} days</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Due soon</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'fees:process_payment' fee.pk %}" class="btn btn-sm btn-success">
+                                    <i class="fas fa-money-bill-wave"></i> Record Payment
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i> All fees have been paid!
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

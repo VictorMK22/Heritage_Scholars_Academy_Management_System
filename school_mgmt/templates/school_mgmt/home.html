@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}Heritage Scholars Academy | Academia360{% endblock %}
+
+{% block content %}
+<div class="text-center py-5">
+    <h1 class="display-4 fw-bold text-primary">Welcome to Heritage Scholars Academy</h1>
+    <p class="lead mt-3 text-muted">Excellence in Education Since 2010</p>
+    
+    {% if not user.is_authenticated %}
+    <div class="alert alert-info mt-4 mx-auto" style="max-width: 800px;">
+        <i class="fas fa-info-circle me-2"></i>
+        Please login to access your personalized dashboard and school resources.
+    </div>
+    {% endif %}
+
+    <div class="row mt-5 justify-content-center">
+        {% if not user.is_authenticated %}
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="icon-lg mb-3">
+                        <i class="fas fa-user-graduate text-primary"></i>
+                    </div>
+                    <h5 class="card-title">Student Portal</h5>
+                    <p class="card-text">Access your academic records, assignments, attendance, and school announcements.</p>
+                    <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary btn-sm mt-2">Student Login</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="icon-lg mb-3">
+                        <i class="fas fa-chalkboard-teacher text-success"></i>
+                    </div>
+                    <h5 class="card-title">Faculty Portal</h5>
+                    <p class="card-text">Manage classes, submit grades, track student progress, and access teaching resources.</p>
+                    <a href="{% url 'accounts:login' %}" class="btn btn-outline-success btn-sm mt-2">Teacher Login</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="icon-lg mb-3">
+                        <i class="fas fa-user-friends text-warning"></i>
+                    </div>
+                    <h5 class="card-title">Parent Portal</h5>
+                    <p class="card-text">Monitor your child's academic progress, attendance, and communicate with teachers.</p>
+                    <a href="{% url 'accounts:login' %}" class="btn btn-outline-warning btn-sm mt-2">Parent Login</a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="alert alert-success">
+                <h4><i class="fas fa-check-circle me-2"></i>Welcome back, {{ user.get_full_name|default:user.username }}!</h4>
+                <p class="mb-0">You're already logged in. <a href="{% url 'students:student_dashboard' %}" class="alert-link">Go to your dashboard</a> or <a href="{% url 'accounts:logout' %}" class="alert-link">logout</a>.</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <hr class="my-5">
+
+    <div class="row mt-5">
+        <div class="col-lg-8 mx-auto">
+            <h2 class="fw-bold mb-4">Why Choose Heritage Scholars Academy?</h2>
+            
+            <div class="row text-start">
+                <div class="col-md-6 mb-4">
+                    <div class="d-flex">
+                        <div class="me-3 text-primary">
+                            <i class="fas fa-award fa-2x"></i>
+                        </div>
+                        <div>
+                            <h5>Academic Excellence</h5>
+                            <p class="text-muted">Consistently ranked in the top 5% of schools nationwide with a 98% college acceptance rate.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="d-flex">
+                        <div class="me-3 text-primary">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                        <div>
+                            <h5>Experienced Faculty</h5>
+                            <p class="text-muted">Our teachers average 12+ years of experience with ongoing professional development.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="d-flex">
+                        <div class="me-3 text-primary">
+                            <i class="fas fa-laptop-code fa-2x"></i>
+                        </div>
+                        <div>
+                            <h5>Technology Integration</h5>
+                            <p class="text-muted">1:1 device program and cutting-edge STEM labs prepare students for the digital future.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="d-flex">
+                        <div class="me-3 text-primary">
+                            <i class="fas fa-heart fa-2x"></i>
+                        </div>
+                        <div>
+                            <h5>Holistic Development</h5>
+                            <p class="text-muted">40+ extracurricular activities including arts, athletics, and community service programs.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-light p-5 mt-5 rounded">
+        <h3 class="mb-4">Upcoming Events</h3>
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <span class="badge bg-primary mb-2">Oct 15</span>
+                        <h5 class="card-title">Open House</h5>
+                        <p class="card-text">9:00 AM - 2:00 PM. Tour our facilities and meet our faculty.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <span class="badge bg-primary mb-2">Nov 3</span>
+                        <h5 class="card-title">STEM Fair</h5>
+                        <p class="card-text">Student projects showcasing innovation in science and technology.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <span class="badge bg-primary mb-2">Dec 10</span>
+                        <h5 class="card-title">Winter Concert</h5>
+                        <p class="card-text">Performances by our music and drama departments.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mt-3">
+            <button class="btn btn-outline-secondary" disabled title="Event calendar coming soon">
+                View All Events (Coming Soon)
+            </button>
+        </div>
+    </div>
+
+    <div class="mt-5">
+        <h3 class="mb-4">By the Numbers</h3>
+        <div class="row text-center">
+            <div class="col-md-3 mb-4">
+                <div class="display-4 fw-bold text-primary">1,200+</div>
+                <p class="text-muted">Students Enrolled</p>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="display-4 fw-bold text-primary">85</div>
+                <p class="text-muted">Certified Educators</p>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="display-4 fw-bold text-primary">98%</div>
+                <p class="text-muted">College Acceptance</p>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="display-4 fw-bold text-primary">40+</div>
+                <p class="text-muted">Extracurricular Programs</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
