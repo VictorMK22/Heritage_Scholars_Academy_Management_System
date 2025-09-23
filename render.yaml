@@ -23,7 +23,3 @@ services:
         value: "False"
       - key: ALLOWED_HOSTS
         value: ".onrender.com"
-    staticPublishing:
-      - name: staticfiles
-        source: school_mgmt/staticfiles/
-        destination: /static/
