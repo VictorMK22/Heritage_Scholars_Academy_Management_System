@@ -9,6 +9,7 @@ services:
     name: heritage-scholars-academy
     env: python
     plan: free
+    rootDir: school_mgmt
     buildCommand: "./build.sh"
     startCommand: "gunicorn school_mgmt.wsgi:application"
     envVars:
@@ -24,5 +25,5 @@ services:
         value: ".onrender.com"
     staticPublishing:
       - name: staticfiles
-        source: staticfiles/
+        source: school_mgmt/staticfiles/
         destination: /static/
