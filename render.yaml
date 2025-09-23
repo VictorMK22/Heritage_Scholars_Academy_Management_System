@@ -1,11 +1,11 @@
 databases:
-  - name: school_mgmt_db
+    name: school_mgmt_db
     databaseName: school_mgmt
     user: school_mgmt_user
     plan: free
 
 services:
-  - type: web
+    type: web
     name: heritage-scholars-academy
     env: python
     plan: free
@@ -13,17 +13,17 @@ services:
     buildCommand: "./build.sh"
     startCommand: "gunicorn school_mgmt.wsgi:application"
     envVars:
-      - key: DATABASE_URL
+        key: DATABASE_URL
         fromDatabase:
           name: school_mgmt_db
           property: connectionString
-      - key: SECRET_KEY
+        key: SECRET_KEY
         generateValue: true
-      - key: DEBUG
+        key: DEBUG
         value: "False"
-      - key: ALLOWED_HOSTS
+        key: ALLOWED_HOSTS
         value: ".onrender.com"
     staticPublishPath:
-      - name: staticfiles
+        name: staticfiles
         source: school_mgmt/staticfiles/
         destination: /static/
