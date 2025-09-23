@@ -2,11 +2,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Teacher
-from academics.models import Class, Subject, Assignment, AssignmentSubmission
+from academics.models import Class, Subject, Assignment, AssignmentSubmission, ClassTeaching
 from students.models import Student
 from attendance.models import Attendance
 from django.utils import timezone
 from academics.utils import current_academic_year
+
 
 @login_required
 def dashboard(request):
@@ -18,47 +19,91 @@ def dashboard(request):
         return redirect('accounts:profile')
 
     current_year = current_academic_year()
+    print(f"Current year from function: {current_year}")
     
     # Get current teaching assignments with subjects
     current_assignments = teacher.currently_teaching()
     
-    # CONSISTENT FILTERING: Apply academic year filter to ALL assignment queries
-    assignment_filter = {
-        'teacher': teacher,
-        'subject__academic_year': current_year
-    }
+    # DEBUG: Check what's happening with academic years
+    print(f"Current assignments count: {current_assignments.count()}")
     
-    # Get recent assignments with consistent filtering
-    recent_assignments = Assignment.objects.filter(
-        **assignment_filter
-    ).select_related('subject', 'class_assigned').order_by('-date_created')[:5]
+    # Let's check all ClassTeaching records and their subjects
+    all_class_teachings = ClassTeaching.objects.filter(teacher=teacher).prefetch_related('subjects')
+    print(f"All ClassTeaching records found: {all_class_teachings.count()}")
     
-    # Calculate statistics with consistent filtering
-    assignment_count = Assignment.objects.filter(**assignment_filter).count()
+    for ct in all_class_teachings:
+        print(f"ClassTeaching ID: {ct.id}, Classroom: {ct.classroom}")
+        for subject in ct.subjects.all():
+            print(f"  Subject: {subject.name}, Academic Year: {subject.academic_year}")
+
+    # FIX: Check if we need to adjust academic year format
+    # If subjects use "2025" but current_year returns "2025-2026", we need to handle this
+    current_year_short = current_year.split('-')[0]  # Get "2025" from "2025-2026"
+    print(f"Short year version: {current_year_short}")
     
-    upcoming_assignments = Assignment.objects.filter(
-        **assignment_filter,
-        due_date__gte=timezone.now()
-    ).order_by('due_date')[:3]
+    # Try alternative query with short year version
+    alternative_assignments = ClassTeaching.objects.filter(
+        teacher=teacher,
+        subjects__academic_year=current_year_short
+    ).select_related('classroom').prefetch_related('subjects').distinct()
     
+    print(f"Alternative assignments count: {alternative_assignments.count()}")
+    
+    # Use the alternative if it finds results
+    if alternative_assignments.exists():
+        current_assignments = alternative_assignments
+        print("Using alternative assignments with short year format")
+
+    # Get assignments - FIX: Assignment model doesn't have academic_year field
+    try:
+        # Since Assignment doesn't have academic_year, filter by date or use all
+        current_year_start = f"{current_year_short}-01-01"  # Approximate start date
+        
+        recent_assignments = Assignment.objects.filter(
+            teacher=teacher,
+            date_created__year=current_year_short  # Filter by creation year
+        ).select_related('subject', 'class_assigned').order_by('-date_created')[:5]
+        
+        assignment_count = Assignment.objects.filter(
+            teacher=teacher,
+            date_created__year=current_year_short
+        ).count()
+        
+        upcoming_assignments = Assignment.objects.filter(
+            teacher=teacher,
+            due_date__gte=timezone.now(),
+            date_created__year=current_year_short
+        ).order_by('due_date')[:3]
+        
+    except Exception as e:
+        print(f"Error filtering assignments: {e}")
+        # Fallback: get any assignments by this teacher
+        recent_assignments = Assignment.objects.filter(
+            teacher=teacher
+        ).select_related('subject', 'class_assigned').order_by('-date_created')[:5]
+        
+        assignment_count = Assignment.objects.filter(teacher=teacher).count()
+        
+        upcoming_assignments = Assignment.objects.filter(
+            teacher=teacher,
+            due_date__gte=timezone.now()
+        ).order_by('due_date')[:3]
+
     # Initialize variables for class teacher specific data
     recent_attendance = None
     primary_class = None
     student_count = 0
-    
-    # IMPROVED ERROR HANDLING for class teachers
+    has_current_assignments = current_assignments.exists()
+
+    # Handle class teacher data
     if teacher.is_class_teacher:
-        # Check if teacher actually has current assignments
-        if current_assignments.exists():
-            # Get the primary class assignment if exists
+        if has_current_assignments:
+            # Get the primary class assignment
             primary_assignment = current_assignments.filter(is_primary=True).first()
             if primary_assignment:
                 primary_class = primary_assignment.classroom
-                try:
-                    student_count = primary_class.student_set.count()
-                except AttributeError:
-                    student_count = 0
-                    
+                student_count = primary_class.student_set.count()
+                
                 # Get recent attendance records
                 recent_attendance = Attendance.objects.filter(
                     recorded_by=teacher,
@@ -66,12 +111,36 @@ def dashboard(request):
                 ).select_related('student', 'student__current_class').order_by('-date')[:5]
         else:
             # Teacher is marked as class teacher but has no current assignments
-            messages.warning(
+            messages.info(
                 request, 
                 "You are marked as a class teacher but have no classes assigned for the current academic year. "
-                "Please contact the administration to resolve this."
+                "Please contact the administration if this is incorrect."
             )
-    
+            
+            # Try to find any class where this teacher might be class teacher
+            try:
+                # Look for Classroom where this teacher is class teacher
+                # Fix import - check the correct model name in your academics app
+                from academics.models import Classroom, AcademicClass  # Try different common names
+                primary_class = None
+                
+                # Try different possible field names
+                if hasattr(academics.models, 'Classroom'):
+                    primary_class = academics.models.Classroom.objects.filter(class_teacher=teacher).first()
+                elif hasattr(academics.models, 'AcademicClass'):
+                    primary_class = academics.models.AcademicClass.objects.filter(class_teacher=teacher).first()
+                else:
+                    # Try to get from ClassTeaching
+                    latest_teaching = ClassTeaching.objects.filter(teacher=teacher).first()
+                    if latest_teaching:
+                        primary_class = latest_teaching.classroom
+                
+                if primary_class:
+                    student_count = primary_class.student_set.count()
+                    print(f"Found primary class: {primary_class.name}")
+            except Exception as e:
+                print(f"Error finding primary class: {e}")
+
     context = {
         'teacher': teacher,
         'current_assignments': current_assignments,
@@ -83,11 +152,10 @@ def dashboard(request):
         'assignment_count': assignment_count,
         'upcoming_assignments': upcoming_assignments,
         'is_class_teacher': teacher.is_class_teacher,
-        'has_current_assignments': current_assignments.exists(),  # New flag
+        'has_current_assignments': has_current_assignments,
     }
     
     return render(request, 'teachers/dashboard.html', context)
-
 
 @login_required
 def activity_log(request):

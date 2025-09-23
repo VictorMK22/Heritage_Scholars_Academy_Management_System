@@ -1,50 +1,252 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5>My Students</h5>
-            </div>
-            <div class="card-body">
-                {% if students %}
-                <ul class="list-group">
-                    {% for student in students %}
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        {{ student.user.get_full_name }}
-                        <span class="badge bg-primary rounded-pill">{{ student.current_class.name }}</span>
-                    </li>
-                    {% endfor %}
-                </ul>
-                {% else %}
-                <p>No students assigned to you.</p>
-                {% endif %}
+<div class="container mt-4">
+    <!-- Welcome Message -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h4>Welcome, {{ guardian.user.get_full_name }}</h4>
+                    <p class="text-muted">Here is an overview of your students' activities and performance.</p>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5>Recent Activities</h5>
+
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">{{ students|length }}</h5>
+                    <p class="card-text">Students</p>
+                </div>
             </div>
-            <div class="card-body">
-                {% if recent_activities %}
-                <div class="list-group">
-                    {% for activity in recent_activities %}
-                    <div class="list-group-item">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h6 class="mb-1">{{ activity.assignment.title }}</h6>
-                            <small>{{ activity.submitted_at|timesince }} ago</small>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">{{ avg_attendance }}%</h5>
+                    <p class="card-text">Avg Attendance</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">{{ pending_assignments }}</h5>
+                    <p class="card-text">Pending Assignments</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">{{ new_notifications }}</h5>
+                    <p class="card-text">New Notifications</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Students Section -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">My Students</h5>
+                    <a href="{% url 'students:guardian_student_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if students %}
+                    <div class="list-group">
+                        {% for student in students %}
+                        <div class="list-group-item">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-0">{{ student.full_name }}</h6>
+                                    <small class="text-muted">
+                                        {% if student.current_class %}
+                                            {{ student.current_class.name }}
+                                        {% else %}
+                                            No class assigned
+                                        {% endif %}
+                                        {% if student.roll_no %} | Roll No: {{ student.roll_no }}{% endif %}
+                                    </small>
+                                </div>
+                                <div class="text-end">
+                                    {% if student.current_class %}
+                                    <span class="badge bg-primary">{{ student.current_class.name }}</span>
+                                    {% endif %}
+                                    <div class="mt-1">
+                                        <span class="badge bg-success">
+                                            {{ student.attendance_percentage }}% Attendance
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Student Actions -->
+                            <div class="mt-2">
+                                {% if student.user_id %}
+                                <a href="{% url 'students:guardian_student_grades' user_id=student.user_id %}" 
+                                   class="btn btn-sm btn-outline-primary me-1">Grades</a>
+                                <a href="{% url 'students:guardian_student_attendance' student_id=student.user_id %}" 
+                                   class="btn btn-sm btn-outline-info">Attendance</a>
+                                {% endif %}
+                            </div>
                         </div>
-                        <p class="mb-1">Submitted by {{ activity.student.user.get_full_name }}</p>
-                        <small>Grade: {% if activity.grade %}{{ activity.grade }}{% else %}Not graded{% endif %}</small>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="mb-0 text-center">No students assigned to you.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activities Section -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Recent Activities</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_activities %}
+                    <div class="list-group">
+                        {% for activity in recent_activities %}
+                        <div class="list-group-item">
+                            <div class="d-flex align-items-start">
+                                <div class="me-3">
+                                    {% if activity.activity_type == 'submission' %}
+                                    <i class="fas fa-file-upload text-primary"></i>
+                                    {% elif activity.activity_type == 'grade' %}
+                                    <i class="fas fa-graduation-cap text-success"></i>
+                                    {% elif activity.activity_type == 'attendance' %}
+                                    <i class="fas fa-calendar-check text-info"></i>
+                                    {% else %}
+                                    <i class="fas fa-bell text-secondary"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">
+                                            {% if activity.activity_type == 'submission' %}
+                                            Assignment Submitted
+                                            {% elif activity.activity_type == 'grade' %}
+                                            Grade Updated
+                                            {% elif activity.activity_type == 'attendance' %}
+                                            Attendance Marked
+                                            {% else %}
+                                            Activity
+                                            {% endif %}
+                                        </h6>
+                                        <small class="text-muted">{{ activity.timestamp|timesince }} ago</small>
+                                    </div>
+                                    <p class="mb-1">
+                                        {% if activity.activity_type == 'submission' %}
+                                        {{ activity.student.full_name }} submitted "{{ activity.assignment.title }}"
+                                        {% if activity.is_late %}<span class="badge bg-danger ms-1">Late</span>{% endif %}
+                                        {% elif activity.activity_type == 'grade' %}
+                                        {{ activity.student.full_name }} received {{ activity.grade_value }}% in {{ activity.subject.name }}
+                                        {% elif activity.activity_type == 'attendance' %}
+                                        {{ activity.student.full_name }} was {{ activity.status }} on {{ activity.date|date:"M d" }}
+                                        {% else %}
+                                        {{ activity.message|default:"" }}
+                                        {% endif %}
+                                    </p>
+                                    <small class="text-muted">
+                                        {% if activity.activity_type == 'submission' %}
+                                        Subject: {{ activity.assignment.subject.name }}
+                                        {% if activity.grade %} | Grade: {{ activity.grade }}{% else %} | Not graded yet{% endif %}
+                                        {% elif activity.activity_type == 'grade' %}
+                                        {% if activity.remarks %}{{ activity.remarks }}{% else %}No remarks{% endif %}
+                                        {% elif activity.activity_type == 'attendance' %}
+                                        {% if activity.remarks %}{{ activity.remarks }}{% else %}No remarks{% endif %}
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="mb-0 text-center">No recent activities found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Dashboard Sections -->
+    <div class="row">
+        <!-- Upcoming Events (Optional) -->
+        {% if upcoming_events %}
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Upcoming Events</h5>
+                </div>
+                <div class="card-body">
+                    {% for event in upcoming_events %}
+                    <div class="d-flex mb-3">
+                        <div class="bg-primary text-white rounded p-2 me-3 text-center" style="width: 45px;">
+                            <div class="fw-bold">{{ event.event_date|date:"d" }}</div>
+                            <small>{{ event.event_date|date:"M" }}</small>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-0">{{ event.title }}</h6>
+                            <small class="text-muted">
+                                {% if event.event_time %}{{ event.event_time }}{% endif %}
+                                {% if event.location %} - {{ event.location }}{% endif %}
+                            </small>
+                        </div>
                     </div>
                     {% endfor %}
                 </div>
-                {% else %}
-                <p>No recent activities found.</p>
-                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Academic Performance Summary -->
+        <div class="col-md-{% if upcoming_events %}6{% else %}12{% endif %}">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Academic Summary</h5>
+                </div>
+                <div class="card-body">
+                    {% if students %}
+                        {% with students|first as student %}
+                        <h6>{{ student.full_name }}</h6>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Overall GPA</span>
+                            <span>{% if student.get_gpa %}{{ student.get_gpa }}{% else %}N/A{% endif %}</span>
+                        </div>
+                        <div class="progress mb-3">
+                            {% if student.get_gpa %}
+                            <div class="progress-bar" style="width: {% widthratio student.get_gpa 4 100 %}%"></div>
+                            {% endif %}
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Age</span>
+                            <span>{% if student.age %}{{ student.age }} years{% else %}N/A{% endif %}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Admission Number</span>
+                            <span>{{ student.admission_number }}</span>
+                        </div>
+                        {% endwith %}
+                    {% endif %}
+                    
+                    <div class="text-center mt-3">
+                        {% if students %}
+                            {% for student in students%}
+                                <a href="{% url 'students:guardian_student_grades' user_id=student.user_id %}" class="btn btn-sm btn-outline-primary me-2">View Grades</a>
+                                <a href="{% url 'students:guardian_student_attendance' student_id=student.user_id %}" class="btn btn-sm btn-outline-info">View Attendance</a>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
             </div>
         </div>
     </div>

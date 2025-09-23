@@ -15,6 +15,6 @@ urlpatterns = [
     path('guardian/dashboard/', views.guardian_dashboard, name='guardian_dashboard'),
     path('guardian/my-students/', views.guardian_student_list, name='guardian_student_list'),
     path('guardian/my-students/classes/', views.guardian_student_classes, name='guardian_student_classes'),
-    path('guardian/student/<int:student_id>/grades/', views.guardian_student_grades, name='guardian_student_grades'),
+    path('guardian/student/<int:user_id>/grades/', views.guardian_student_grades, name='guardian_student_grades'),
     path('guardian/student/<int:student_id>/attendance/', views.guardian_student_attendance, name='guardian_student_attendance'),
 ]

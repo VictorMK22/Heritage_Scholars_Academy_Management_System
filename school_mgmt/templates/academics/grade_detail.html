@@ -2,9 +2,33 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2>Grade Details</h2>
-    <p>Student: {{ grade.student.user.get_full_name }}</p>
-    <p>Subject: {{ grade.subject.name }}</p>
-    <p>Marks: {{ grade.marks }}</p>
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Grade Details</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Student:</strong> {{ grade.student.user.get_full_name }}</p>
+                    <p><strong>Subject:</strong> {{ grade.subject.name }}</p>
+                    <p><strong>Marks:</strong> 
+                        <span class="badge {% if grade.marks >= 70 %}bg-success{% elif grade.marks >= 50 %}bg-warning{% else %}bg-danger{% endif %}">
+                            {{ grade.marks }}%
+                        </span>
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Date Recorded:</strong> {{ grade.date_recorded|date:"M d, Y" }}</p>
+                    <p><strong>Remarks:</strong> {{ grade.remarks|default:"No remarks" }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <a href="{% url 'academics:grade_list' %}" class="btn btn-secondary">Back to Grades</a>
+            {% if user.is_staff or user.is_teacher %}
+            <a href="{% url 'academics:grade_update' grade.pk %}" class="btn btn-warning">Edit Grade</a>
+            {% endif %}
+        </div>
+    </div>
 </div>
 {% endblock %}

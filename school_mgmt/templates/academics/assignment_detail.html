@@ -90,6 +90,9 @@
                     </div>
                     {% else %}
                     <p class="text-muted">No submissions yet.</p>
+                    <a href="{% url 'academics:submission_create' assignment_id=assignment.id %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i>Submit
+                    </a>
                     {% endif %}
                 </div>
             </div>

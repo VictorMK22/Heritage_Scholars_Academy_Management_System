@@ -3,6 +3,7 @@ from accounts.models import CustomUser
 from django.core.validators import RegexValidator
 from datetime import date
 from django.utils import timezone
+from dateutil.relativedelta import relativedelta
 
 # Create your models here.
 class Guardian(models.Model):
@@ -22,9 +23,10 @@ class Guardian(models.Model):
 class Student(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, primary_key=True)
     admission_number = models.CharField(max_length=50, unique=True)
+    roll_no = models.CharField(max_length=20, blank=True, null=True)  # Add this field
     date_of_birth = models.DateField(null=True, blank=True)
     current_class = models.ForeignKey("academics.Class", on_delete=models.SET_NULL, null=True, blank=True)
-    guardian = models.ForeignKey(Guardian, on_delete=models.SET_NULL, null=True, blank=True, related_name='ward_students')
+    guardian = models.ForeignKey("Guardian", on_delete=models.SET_NULL, null=True, blank=True, related_name='ward_students')
 
     def __str__(self):
         return self.user.get_full_name()
@@ -34,15 +36,17 @@ class Student(models.Model):
         verbose_name = "Student"
         verbose_name_plural = "Students"
 
+    @property
+    def full_name(self):
+        return f"{self.user.first_name} {self.user.last_name}".strip()
+
+
     def age(self):
-        """Calculate student's age"""
         if not self.date_of_birth:
             return None
-        today = date.today()
-        return today.year - self.date_of_birth.year - ((today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day))
+        return relativedelta(date.today(), self.date_of_birth).years
 
     def get_gpa(self):
-        """Calculate student's GPA from all grades"""
         from academics.models import Grade
         grades = Grade.objects.filter(student=self)
         if grades.exists():
@@ -51,25 +55,24 @@ class Student(models.Model):
 
     @property
     def attendance_percentage(self):
-        """Calculate attendance percentage for current month"""
         from attendance.models import Attendance
         current_month = timezone.now().month
         current_year = timezone.now().year
-        
+
         total_days = Attendance.objects.filter(
             student=self,
             date__month=current_month,
             date__year=current_year
         ).count()
-        
+
         if total_days == 0:
             return 0
-            
+
         present_days = Attendance.objects.filter(
             student=self,
             status="Present",
             date__month=current_month,
             date__year=current_year
         ).count()
-        
+
         return round((present_days / total_days) * 100, 2)

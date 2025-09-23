@@ -150,7 +150,7 @@
                                 <small class="text-muted d-block">Date:</small>
                                 <small class="text-muted">{{ attendance.date|date:"M d, Y" }}</small>
                                 <div class="mt-1">
-                                    <a href="{% url 'teachers:attendance_detail' attendance.id %}" 
+                                    <a href="{% url 'attendance:detail' attendance.pk %}" 
                                        class="btn btn-sm btn-outline-success"
                                        title="View attendance details">
                                         <i class="bi bi-eye"></i> Details

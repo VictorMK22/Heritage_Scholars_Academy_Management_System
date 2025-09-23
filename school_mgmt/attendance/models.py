@@ -5,7 +5,8 @@ class Attendance(models.Model):
     student = models.ForeignKey("students.Student", on_delete=models.CASCADE)
     date = models.DateTimeField()
     status = models.CharField(max_length=10, choices=[("Present", "Present"), ("Absent", "Absent")])
-
+    recorded_by = models.ForeignKey('teachers.Teacher', on_delete=models.SET_NULL, null=True, blank=True)
+    
     def __str__(self):
         return f"{self.student} - {self.date} - {self.status}"
     

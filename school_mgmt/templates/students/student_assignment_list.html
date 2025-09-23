@@ -37,10 +37,7 @@
                             {% endif %}
                         </td>
                         <td>
-                            <a href="#" class="btn btn-sm btn-outline-primary">View</a>
-                            {% if not assignment.submitted %}
-                            <a href="#" class="btn btn-sm btn-outline-success">Submit</a>
-                            {% endif %}
+                            <a href="{% url 'academics:assignment_detail' assignment.pk %}" class="btn btn-sm btn-outline-primary">Details</a>
                         </td>
                     </tr>
                     {% endfor %}

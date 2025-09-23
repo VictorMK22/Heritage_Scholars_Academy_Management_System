@@ -2,11 +2,89 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2>Submission Details</h2>
-    <p>Assignment: {{ submission.assignment.title }}</p>
-    <p>Student: {{ submission.student.user.get_full_name }}</p>
-    <p>Submitted: {{ submission.submission_date|date:"Y-m-d H:i" }}</p>
-    <p>Grade: {{ submission.grade|default:"Not graded" }}</p>
-    <p>Feedback: {{ submission.feedback|default:"No feedback" }}</p>
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Submission Details</h2>
+        <a href="{% url 'academics:submission_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Submissions
+        </a>
+    </div>
+
+    <!-- Assignment Card -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="card-title mb-0">Assignment Information</h5>
+        </div>
+        <div class="card-body">
+            <h6 class="card-subtitle mb-2 text-muted">{{ submission.assignment.title }}</h6>
+            <p class="card-text">{{ submission.assignment.description }}</p>
+            <small class="text-muted">
+                Subject: {{ submission.assignment.subject_class }} | 
+                Due: {{ submission.assignment.due_date|date:"Y-m-d H:i" }}
+            </small>
+        </div>
+    </div>
+
+    <!-- Submission Details Card -->
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="card-title mb-0">Submission Details</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Student:</strong> {{ submission.student.user.get_full_name }}</p>
+                    <p><strong>Submitted:</strong> {{ submission.submission_date|date:"Y-m-d H:i" }}</p>
+                    <p><strong>Status:</strong> 
+                        <span class="badge {% if submission.is_late %}bg-danger{% else %}bg-success{% endif %}">
+                            {% if submission.is_late %}Late Submission{% else %}On Time{% endif %}
+                        </span>
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Grade:</strong> 
+                        {% if submission.grade %}
+                            <span class="badge bg-warning text-dark">{{ submission.grade }}/100</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Not graded</span>
+                        {% endif %}
+                    </p>
+                    <p><strong>Feedback:</strong> {{ submission.feedback|default:"No feedback provided" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- File Download Section -->
+    {% if submission.submitted_file %}
+    <div class="card">
+        <div class="card-header bg-light">
+            <h5 class="card-title mb-0">Submitted File</h5>
+        </div>
+        <div class="card-body">
+            <p class="card-text">
+                <i class="bi bi-file-earmark-text"></i> 
+                {{ submission.submitted_file.name }}
+            </p>
+            <a href="{{ submission.submitted_file.url }}" class="btn btn-success" download>
+                <i class="bi bi-download"></i> Download File
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Grading Section (for teachers) -->
+    {% if user.is_staff or user.is_teacher %}
+    <div class="card mt-4">
+        <div class="card-header bg-warning">
+            <h5 class="card-title mb-0">Grading Section</h5>
+        </div>
+        <div class="card-body">
+            <a href="{% url 'academics:submission_grade' submission.pk %}" class="btn btn-warning">
+                <i class="bi bi-pencil"></i> Grade Submission
+            </a>
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

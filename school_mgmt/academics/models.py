@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
+from academics.utils import current_academic_year
 
 class Class(models.Model):
     name = models.CharField(max_length=20, unique=True)
@@ -42,7 +43,7 @@ class ClassTeaching(models.Model):
     teacher = models.ForeignKey("teachers.Teacher", on_delete=models.CASCADE, related_name='class_assignments')
     is_primary = models.BooleanField(default=False)
     date_assigned = models.DateField(auto_now_add=True)
-    subjects = models.ManyToManyField("Subject", blank=True)
+    subjects = models.ManyToManyField("Subject", blank=True)  # This can remain as M2M
 
     class Meta:
         unique_together = ('classroom', 'teacher')
@@ -129,7 +130,7 @@ class AssignmentSubmission(models.Model):
     assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE, related_name='submissions')
     student = models.ForeignKey("students.Student", on_delete=models.CASCADE, related_name='submissions')
     submission_date = models.DateTimeField(auto_now_add=True)
-    submitted_file = models.FileField(upload_to='submissions/%Y/%m/%d/')
+    submitted_file = models.FileField(upload_to='submissions/')
     comments = models.TextField(blank=True)
     grade = models.PositiveIntegerField(
         blank=True,

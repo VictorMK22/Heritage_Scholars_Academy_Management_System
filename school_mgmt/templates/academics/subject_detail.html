@@ -1,12 +1,236 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+
+{% block title %}{{ subject.name }} - Details - Heritage Scholars Academy{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    <h2>{% if object %}Edit{% else %}Create{% endif %} Subject</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Save</button>
-    </form>
+    <!-- Breadcrumb Navigation -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'students:student_dashboard' %}">Dashboard</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{% url 'academics:subject_list' %}">Subjects</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">{{ subject.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Subject Header -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2 class="h4 mb-0">
+                            <i class="fas fa-book me-2"></i>{{ subject.name }}
+                        </h2>
+                        <span class="badge bg-light text-primary fs-6">{{ subject.code|default:"Subject" }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <strong><i class="fas fa-user-tie me-2 text-primary"></i>Teacher:</strong>
+                                <p class="mb-0">
+                                    {% if subject.teacher %}
+                                        {{ subject.teacher.user.get_full_name|default:subject.teacher.user.username }}
+                                    {% else %}
+                                        <span class="text-muted">Not assigned</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <strong><i class="fas fa-calendar-alt me-2 text-info"></i>Academic Year:</strong>
+                                <p class="mb-0">{{ subject.academic_year }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <strong><i class="fas fa-calendar me-2 text-success"></i>Term:</strong>
+                                <p class="mb-0">{{ subject.term|default:"Not specified" }}</p>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <strong><i class="fas fa-users me-2 text-warning"></i>Class:</strong>
+                                <p class="mb-0">
+                                    {% if subject.class_assigned %}
+                                        {{ subject.class_assigned.name }}
+                                    {% else %}
+                                        <span class="text-muted">Not assigned to any class</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subject Materials Section -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light py-3">
+                    <h3 class="h5 mb-0">
+                        <i class="fas fa-book-open me-2"></i>Learning Materials
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Materials and resources will be available here once uploaded by your teacher.
+                    </div>
+                    
+                    <!-- Placeholder for future materials -->
+                    <div class="list-group">
+                        <a href="#" class="list-group-item list-group-item-action disabled">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-file-pdf text-danger me-2"></i>
+                                    <span>Course Syllabus</span>
+                                </div>
+                                <small class="text-muted">Coming soon</small>
+                            </div>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action disabled">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-file-word text-primary me-2"></i>
+                                    <span>Lecture Notes</span>
+                                </div>
+                                <small class="text-muted">Coming soon</small>
+                            </div>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action disabled">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-video text-success me-2"></i>
+                                    <span>Video Lectures</span>
+                                </div>
+                                <small class="text-muted">Coming soon</small>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar - Quick Actions -->
+        <div class="col-lg-4">
+            <!-- Teacher Contact Card -->
+            {% if subject.teacher %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light py-3">
+                    <h4 class="h6 mb-0">
+                        <i class="fas fa-envelope me-2"></i>Contact Teacher
+                    </h4>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <img src="https://ui-avatars.com/api/?name={{ subject.teacher.user.get_full_name|default:subject.teacher.user.username }}&background=007bff&color=fff&size=64" 
+                             alt="{{ subject.teacher.user.get_full_name }}" 
+                             class="rounded-circle mb-2"
+                             width="64"
+                             height="64">
+                        <h5 class="mb-1">{{ subject.teacher.user.get_full_name|default:subject.teacher.user.username }}</h5>
+                        <p class="text-muted mb-2">Subject Teacher</p>
+                    </div>
+                    <div class="d-grid gap-2">
+                        {% if subject.teacher and subject.teacher.user and subject.teacher.user.email %}
+                            <a href="mailto:{{ subject.teacher.user.email }}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-envelope me-1"></i>Send Email
+                            </a>
+                        {% else %}
+                            <button class="btn btn-outline-secondary btn-sm" disabled>
+                                <i class="fas fa-envelope me-1"></i>
+                                {% if not subject.teacher %}
+                                    No Teacher Assigned
+                                {% elif not subject.teacher.user %}
+                                    No User Account
+                                {% else %}
+                                    Email Not Available
+                                {% endif %}
+                            </button>
+                        {% endif %}
+                        
+                        <button class="btn btn-outline-secondary btn-sm" disabled>
+                            <i class="fas fa-comment me-1"></i>Send Message (Coming Soon)
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Quick Stats -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light py-3">
+                    <h4 class="h6 mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>Subject Overview
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span>Assignments</span>
+                        <span class="badge bg-info">0 Pending</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span>Grades</span>
+                        <span class="badge bg-secondary">Not available</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Attendance</span>
+                        <span class="badge bg-success">100%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light py-3">
+                    <h4 class="h6 mb-0">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="#" class="btn btn-outline-primary btn-sm disabled">
+                            <i class="fas fa-tasks me-1"></i>View Assignments
+                        </a>
+                        <a href="#" class="btn btn-outline-success btn-sm disabled">
+                            <i class="fas fa-chart-line me-1"></i>View Grades
+                        </a>
+                        <a href="#" class="btn btn-outline-info btn-sm disabled">
+                            <i class="fas fa-calendar-check me-1"></i>View Schedule
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.breadcrumb {
+    background-color: transparent;
+    padding: 0;
+    margin-bottom: 1rem;
+}
+
+.card {
+    border: 1px solid #e3e6f0;
+    border-radius: 0.5rem;
+}
+
+.card-header {
+    border-bottom: 1px solid #e3e6f0;
+}
+
+.list-group-item.disabled {
+    background-color: #f8f9fa;
+}
+</style>
 {% endblock %}

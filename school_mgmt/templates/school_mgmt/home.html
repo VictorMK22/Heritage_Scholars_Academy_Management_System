@@ -58,7 +58,7 @@
         <div class="col-12">
             <div class="alert alert-success">
                 <h4><i class="fas fa-check-circle me-2"></i>Welcome back, {{ user.get_full_name|default:user.username }}!</h4>
-                <p class="mb-0">You're already logged in. <a href="{% url 'students:student_dashboard' %}" class="alert-link">Go to your dashboard</a> or <a href="{% url 'accounts:logout' %}" class="alert-link">logout</a>.</p>
+                <p class="mb-0">You're already logged in. {% if user.role == "student" %} <a href="{% url 'students:student_dashboard' %}" class="alert-link">Go to your dashboard</a> {% elif user.role == "guardian" %} <a href="{% url 'students:guardian_dashboard' %}" class="alert-link">Go to your dashboard</a> {% elif user.role == "admin" %} <a href="{% url 'admin:index' %}" class="alert-link">Go to your dashboard</a> {% elif user.role == "teacher" %} <a href="{% url 'teachers:dashboard' %}" class="alert-link">Go to your dashboard</a> {% else %} <span class="text-muted">No dashboard available for your role.</span> {% endif %} or <a href="{% url 'accounts:logout' %}" class="alert-link">logout</a>.</p>
             </div>
         </div>
         {% endif %}

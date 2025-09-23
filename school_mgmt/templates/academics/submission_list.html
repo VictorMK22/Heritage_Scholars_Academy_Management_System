@@ -14,18 +14,22 @@
             </tr>
         </thead>
         <tbody>
-            {% for submission in submissions %}
-            <tr>
-                <td>{{ submission.assignment.title }}</td>
-                <td>{{ submission.student.user.get_full_name }}</td>
-                <td>{{ submission.submission_date|date:"Y-m-d" }}</td>
-                <td>{{ submission.grade|default:"Not graded" }}</td>
-                <td>
-                    <a href="{% url 'academics:submission_detail' submission.pk %}" class="btn btn-sm btn-info">View</a>
-                    <a href="{% url 'academics:submission_grade' submission.pk %}" class="btn btn-sm btn-success">Grade</a>
-                </td>
-            </tr>
-            {% endfor %}
+            {% if submissions %}
+                {% for submission in submissions %}
+                <tr>
+                    <td>{{ submission.assignment.title }}</td>
+                    <td>{{ submission.student.user.get_full_name }}</td>
+                    <td>{{ submission.submission_date|date:"Y-m-d" }}</td>
+                    <td>{{ submission.grade|default:"Not graded" }}</td>
+                    <td>
+                        <a href="{% url 'academics:submission_detail' submission.pk %}" class="btn btn-sm btn-info">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <a href="{% url 'academics:submission_create' assignment_id=assigment.id %}" class="btn btn-sm btn-outline-success">Submit</a>
+            {% endif %}
+            
         </tbody>
     </table>
 </div>

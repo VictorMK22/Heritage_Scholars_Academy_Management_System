@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Teacher
+from .models import Teacher, TeacherSubjectAssignment
 from accounts.models import CustomUser
 from accounts.admin import CustomUserAdmin
 
@@ -87,3 +87,25 @@ class TeacherAdmin(admin.ModelAdmin):
             return ", ".join([s.name for s in subjects])
         return "No current teaching assignments"
     get_current_subjects.short_description = 'Currently Teaching'
+
+
+@admin.register(TeacherSubjectAssignment)  
+class TeacherSubjectAssignmentAdmin(admin.ModelAdmin):
+    list_display = (
+        'teacher',
+        'subject', 
+        'academic_year',
+        'date_assigned'
+    )
+    list_filter = ('academic_year', 'subject', 'teacher')
+    search_fields = (
+        'teacher__user__first_name',
+        'teacher__user__last_name', 
+        'subject__name',
+        'academic_year'
+    )
+    list_select_related = ('teacher', 'subject')
+    date_hierarchy = 'date_assigned'
+    
+    # Add autocomplete fields for better performance with many records
+    autocomplete_fields = ['teacher', 'subject']

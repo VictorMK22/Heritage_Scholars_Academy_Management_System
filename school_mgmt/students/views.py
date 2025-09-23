@@ -1,10 +1,11 @@
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from accounts.decorators import student_required, guardian_required
-from academics.models import Subject, Assignment, AssignmentSubmission  
+from academics.models import Subject, Assignment, AssignmentSubmission, Grade 
 from .models import Student
 from accounts.models import CustomUser
 from django.contrib import messages
+from django.utils import timezone
 
 @login_required
 @student_required
@@ -114,21 +115,121 @@ def assign_students_to_class(request):
 @guardian_required
 def guardian_dashboard(request):
     guardian = request.user.guardian_profile
-    # Assuming Guardian model has a related_name='ward_students' for students
-    students = guardian.ward_students.all()  
+    students = guardian.ward_students.all().select_related('user', 'current_class')
+    
+    # Calculate averages
+    avg_attendance = round(sum(s.attendance_percentage for s in students) / len(students)) if students else 0
+    
+    # Get recent activities from multiple sources
     recent_activities = []
     
+    # Get recent submissions (last 3 days)
     for student in students:
-        recent_activities.extend(
-            student.submissions.order_by('-submission_date')[:3]
-        )
+        submissions = AssignmentSubmission.objects.filter(
+            student=student,
+            submission_date__gte=timezone.now() - timezone.timedelta(days=3)
+        ).select_related('assignment', 'assignment__subject').order_by('-submission_date')[:5]
+        
+        for submission in submissions:
+            recent_activities.append({
+                'activity_type': 'submission',
+                'student': student,
+                'assignment': submission.assignment,
+                'timestamp': submission.submission_date,
+                'grade': submission.grade,
+                'is_late': submission.is_late
+            })
+    
+    # Get recent grades (last week)
+    for student in students:
+        grades = Grade.objects.filter(
+            student=student,
+            date_recorded__gte=timezone.now() - timezone.timedelta(days=7)
+        ).select_related('subject').order_by('-date_recorded')[:3]
+        
+        for grade in grades:
+            recent_activities.append({
+                'activity_type': 'grade',
+                'student': student,
+                'grade_value': grade.marks,
+                'subject': grade.subject,
+                'remarks': grade.remarks,
+                'timestamp': grade.date_recorded
+            })
+    
+    # Get recent attendance records (last week)
+    for student in students:
+        # Check if attendance app is available
+        try:
+            from attendance.models import Attendance
+            attendance_records = Attendance.objects.filter(
+                student=student,
+                date__gte=timezone.now().date() - timezone.timedelta(days=7)
+            ).order_by('-date')[:5]
+            
+            for record in attendance_records:
+                recent_activities.append({
+                    'activity_type': 'attendance',
+                    'student': student,
+                    'status': record.status,
+                    'date': record.date,
+                    'remarks': getattr(record, 'remarks', ''),
+                    'timestamp': record.date  # Using date as timestamp
+                })
+        except ImportError:
+            # Attendance app not available
+            pass
+    
+    # Sort all activities by timestamp (most recent first)
+    recent_activities.sort(key=lambda x: x['timestamp'], reverse=True)
+    
+    # Get the 10 most recent activities
+    recent_activities = recent_activities[:10]
+    
+    # Get upcoming events (next 7 days) - assuming you have an Event model
+    upcoming_events = []
+    try:
+        from events.models import Event
+        upcoming_events = Event.objects.filter(
+            event_date__gte=timezone.now().date(),
+            event_date__lte=timezone.now().date() + timezone.timedelta(days=7)
+        ).order_by('event_date')[:5]
+    except ImportError:
+        # Events model not available
+        pass
+    
+    # Count pending assignments (due in future or past due but not submitted)
+    pending_assignments = 0
+    for student in students:
+        if student.current_class:
+            # Get assignments for the student's class that are due
+            class_assignments = Assignment.objects.filter(
+                class_assigned=student.current_class,
+                due_date__gte=timezone.now() - timezone.timedelta(days=7)  # Include recently past due
+            )
+            
+            for assignment in class_assignments:
+                # Check if student has submitted this assignment
+                if not AssignmentSubmission.objects.filter(
+                    assignment=assignment, 
+                    student=student
+                ).exists():
+                    pending_assignments += 1
+    
+    # Set new_notifications to 0 since we don't have notifications model
+    new_notifications = 0
     
     context = {
         'guardian': guardian,
         'students': students,
-        'recent_activities': recent_activities[:5],  # Show only 5 most recent
+        'recent_activities': recent_activities,
+        'avg_attendance': avg_attendance,
+        'pending_assignments': pending_assignments,
+        'new_notifications': new_notifications,
+        'upcoming_events': upcoming_events,
     }
     return render(request, 'students/guardian_dashboard.html', context)
+
 
 @login_required
 @guardian_required
@@ -143,16 +244,16 @@ def guardian_student_list(request):
 
 @login_required
 @guardian_required
-def guardian_student_grades(request, student_id):
+def guardian_student_grades(request, user_id):
     guardian = request.user.guardian_profile
-    student = get_object_or_404(Student, id=student_id)
+    student = get_object_or_404(Student, user_id=user_id)
     
     # Verify the student is under this guardian's care
     if student.guardian != guardian:
         return HttpResponseForbidden("You don't have permission to view this student's grades")
     
     # Assuming Grade model exists with student ForeignKey
-    grades = student.grade_set.select_related('course').order_by('-date_given')
+    grades = student.grades.select_related('subject').order_by('-date_recorded')
     
     context = {
         'student': student,
@@ -175,27 +276,37 @@ def guardian_student_classes(request):
 @guardian_required
 def guardian_student_attendance(request, student_id):
     guardian = request.user.guardian_profile
-    student = get_object_or_404(Student, id=student_id)
+    student = get_object_or_404(Student, user_id=student_id)
     
     # Verify the student is under this guardian's care
     if student.guardian != guardian:
         return HttpResponseForbidden("You don't have permission to view this student's attendance")
     
-    # Assuming Attendance model exists
-    attendance_records = student.attendance_records.order_by('-date')
-    
-    # Calculate attendance stats
-    total_days = attendance_records.count()
-    present_days = attendance_records.filter(status='present').count()
-    attendance_percentage = (present_days / total_days * 100) if total_days > 0 else 0
-    
-    context = {
-        'student': student,
-        'attendance_records': attendance_records[:30],  # Last 30 records
-        'attendance_stats': {
-            'total_days': total_days,
-            'present_days': present_days,
-            'percentage': round(attendance_percentage, 2)
+    # Get attendance records - NOT using attendance_percentage
+    try:
+        from attendance.models import Attendance
+        attendance_records = Attendance.objects.filter(student=student).order_by('-date')
+        
+        # Calculate attendance stats
+        total_days = attendance_records.count()
+        present_days = attendance_records.filter(status='Present').count()
+        attendance_percentage = (present_days / total_days * 100) if total_days > 0 else 0
+        
+        context = {
+            'student': student,
+            'attendance_records': attendance_records[:30],  # Last 30 records
+            'attendance_stats': {
+                'total_days': total_days,
+                'present_days': present_days,
+                'percentage': round(attendance_percentage, 2)
+            }
         }
-    }
+        
+    except ImportError:
+        # Attendance app not available
+        context = {
+            'student': student,
+            'error': 'Attendance tracking is not available at this time.'
+        }
+    
     return render(request, 'students/guardian_student_attendance.html', context)

@@ -24,10 +24,10 @@
                             <td>{{ student.current_class.name }}</td>
                             <td>{{ student.user.email }}</td>
                             <td>
-                                {% if student.id %}
-                                <a href="{% url 'students:guardian_student_grades' student_id=student.id %}" 
+                                {% if student.user_id %}
+                                <a href="{% url 'students:guardian_student_grades' user_id=student.user_id %}" 
                                 class="btn btn-sm btn-outline-primary">Grades</a>
-                                <a href="{% url 'students:guardian_student_attendance' student_id=student.id %}" 
+                                <a href="{% url 'students:guardian_student_attendance' student_id=student.user_id %}" 
                                 class="btn btn-sm btn-outline-info">Attendance</a>
                                 {% else %}
                                 <span class="text-muted small">No ID available</span>

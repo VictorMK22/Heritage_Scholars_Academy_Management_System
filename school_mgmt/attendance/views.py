@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.utils import timezone
@@ -22,7 +22,7 @@ def take_attendance(request):
         students = Student.objects.all()
         
         for student in students:
-            status = request.POST.get(f'status_{student.id}', 'Absent')
+            status = request.POST.get(f'status_{student.pk}', 'Absent')
             Attendance.objects.create(
                 student=student,
                 date=date,
@@ -33,6 +33,11 @@ def take_attendance(request):
     
     students = Student.objects.all()
     return render(request, 'attendance/take_attendance.html', {'students': students})
+
+class AttendanceDetailView(DetailView):
+    model = Attendance
+    template_name = 'attendance/attendance_detail.html'
+    context_object_name = 'attendance'
 
 class AttendanceUpdateView(UpdateView):
     model = Attendance

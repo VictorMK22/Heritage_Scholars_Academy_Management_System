@@ -93,7 +93,7 @@
                 <div class="card-body">
                     <div class="d-grid gap-2">
                         {% if has_current_assignments %}
-                            <a href="{% url 'teachers:create_assignment' %}" class="btn btn-outline-primary">
+                            <a href="{% url 'academics:assignment_create' %}" class="btn btn-outline-primary">
                                 <i class="bi bi-file-earmark-plus"></i> Create Assignment
                             </a>
                         {% else %}
@@ -116,7 +116,7 @@
                             </button>
                         {% endif %}
                         
-                        <a href="{% url 'teachers:class_list' %}" class="btn btn-outline-secondary">
+                        <a href="{% url 'academics:class_list' %}" class="btn btn-outline-secondary">
                             <i class="bi bi-list-ul"></i> View All Classes
                         </a>
                     </div>
@@ -192,7 +192,7 @@
                                         <span class="badge bg-secondary">{{ assignment.classroom.student_count|default:"0" }}</span>
                                     </td>
                                     <td>
-                                        <a href="{% url 'teachers:class_assignments' assignment.classroom.id %}"
+                                        <a href="{% url 'academics:class_detail' assignment.pk %}"
                                            class="btn btn-sm btn-outline-primary"
                                            title="View assignments">
                                             <i class="bi bi-list-task"></i>
@@ -224,7 +224,7 @@
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush">
                         {% for assignment in recent_assignments %}
-                        <a href="{% url 'teachers:assignment_detail' assignment.id %}" class="list-group-item list-group-item-action">
+                        <a href="{% url 'academics:assignment_detail' assignment.pk %}" class="list-group-item list-group-item-action">
                             <div class="d-flex w-100 justify-content-between">
                                 <div>
                                     <i class="bi bi-file-earmark-text text-primary me-2"></i>

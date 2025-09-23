@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h4>Attendance Details</h4>
+        </div>
+        <div class="card-body">
+            <p><strong>Student:</strong> {{ attendance.student.full_name }}</p>
+            <p><strong>Date:</strong> {{ attendance.date|date:"F d, Y" }}</p>
+            <p><strong>Status:</strong> {{ attendance.status }}</p>
+            <p><strong>Recorded by:</strong> {{ attendance.recorded_by.full_name }}</p>
+        </div>
+        <div class="card-footer">
+            <a href="{% url 'attendance:list' %}" class="btn btn-secondary">Back to List</a>
+            <a href="{% url 'attendance:update' attendance.id %}" class="btn btn-primary">Edit</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

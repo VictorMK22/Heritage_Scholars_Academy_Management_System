@@ -18,6 +18,7 @@ from students.models import Student
 from .models import Class, Subject, ClassTeaching, Grade, Assignment, AssignmentSubmission
 from .forms import (ClassForm, ClassTeacherAssignmentForm, ClassSubjectAssignmentForm, SubjectForm, AssignmentForm, 
                    SubmissionForm, GradeForm, GradeSubmissionForm)
+from .utils import current_academic_year
 
 # Class Views
 class ClassListView(LoginRequiredMixin, ListView):
@@ -331,39 +332,54 @@ class AssignmentListView(LoginRequiredMixin, ListView):
 
 class AssignmentCreateView(LoginRequiredMixin, CreateView):
     model = Assignment
-    fields = ['title', 'description', 'subject', 'class_assigned', 
-             'due_date', 'attachment', 'points', 'is_published']
+    form_class = AssignmentForm
     template_name = 'academics/assignment_form.html'
-
-    def get_form(self, form_class=None):
-        form = super().get_form(form_class)
-        # Set initial teacher to current user's teacher profile
-        if hasattr(self.request.user, 'teacher_profile'):
-            form.fields['subject'].queryset = self.request.user.teacher_profile.subjects.all()
-            form.fields['class_assigned'].queryset = Class.objects.filter(
-                teaching_assignments__teacher=self.request.user.teacher_profile
-            ).distinct()
-        return form
-
-    def form_valid(self, form):
-        try:
-            # Automatically set the teacher to current teacher
-            form.instance.teacher = self.request.user.teacher_profile
-            response = super().form_valid(form)
-            messages.success(self.request, 'Assignment created successfully!')
-            return response
-        except AttributeError:
-            messages.error(self.request, 'Only teachers can create assignments')
-            return self.form_invalid(form)
-
-    def get_success_url(self):
-        return reverse('academics:assignment_list')
-
+    
+    def get_form_kwargs(self):
+        """Pass the request to the form"""
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['page_title'] = "Create New Assignment"
-        context['now'] = timezone.now()
+        
+        # Add context for the template to show helpful messages
+        try:
+            teacher = self.request.user.teacher_profile
+            current_year = current_academic_year()
+            year_var = current_year.split('-')[0] if '-' in current_year else current_year
+            
+            current_subjects = teacher.subjects.filter(academic_year=year_var)
+            context['has_current_subjects'] = current_subjects.exists()
+            context['current_academic_year'] = current_year
+            
+        except Teacher.DoesNotExist:
+            context['has_current_subjects'] = False
+            
         return context
+    
+    def form_valid(self, form):
+        try:
+            teacher = self.request.user.teacher_profile
+            
+            # Assign the current teacher to the assignment
+            form.instance.teacher = teacher
+            
+            # Set academic year based on the selected subject
+            if form.cleaned_data.get('subject'):
+                form.instance.academic_year = form.cleaned_data['subject'].academic_year
+            
+            response = super().form_valid(form)
+            messages.success(self.request, "Assignment created successfully!")
+            return response
+            
+        except Teacher.DoesNotExist:
+            messages.error(self.request, "You must be a teacher to create assignments.")
+            return self.form_invalid(form)
+    
+    def get_success_url(self):
+        return reverse('teachers:dashboard')
 
 class AssignmentDetailView(LoginRequiredMixin, DetailView):
     model = Assignment
@@ -452,6 +468,7 @@ class SubmissionCreateView(LoginRequiredMixin, CreateView):
 class SubmissionDetailView(LoginRequiredMixin, DetailView):
     model = AssignmentSubmission
     template_name = 'academics/submission_detail.html'
+    context_object_name = 'submission'
 
 class SubmissionUpdateView(LoginRequiredMixin, UpdateView):
     model = AssignmentSubmission
@@ -528,6 +545,10 @@ class GradeCreateView(LoginRequiredMixin, CreateView):
 class GradeDetailView(LoginRequiredMixin, DetailView):
     model = Grade
     template_name = 'academics/grade_detail.html'
+    context_object_name = 'grade'
+    
+    def get_queryset(self):
+        return Grade.objects.all()
 
 class GradeUpdateView(LoginRequiredMixin, UpdateView):
     model = Grade

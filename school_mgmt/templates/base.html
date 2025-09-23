@@ -213,45 +213,6 @@
                                         <i class="fas fa-users me-2"></i>My Students
                                     </a>
                                 </li>
-                                <li><hr class="dropdown-divider"></li>
-                                {% with guardian_students=request.user.guardian_profile.students.all %}
-                                {% if guardian_students %}
-                                    <li class="dropdown-header">
-                                        <i class="fas fa-user-graduate me-2"></i>Student Details
-                                    </li>
-                                    {% for student in guardian_students %}
-                                        <li>
-                                            {% if student.id %}
-                                            <a class="dropdown-item {% if request.resolver_match.url_name == 'guardian_student_grades' and request.resolver_match.kwargs.student_id == student.id|stringformat:'s' %}active{% endif %}" 
-                                            href="{% url 'students:guardian_student_grades' student_id=student.id %}">
-                                                <i class="fas fa-award me-2"></i>{{ student.get_full_name|default:student.user.username }}'s Grades
-                                            </a>
-                                            {% else %}
-                                            <span class="dropdown-item text-muted">
-                                                <i class="fas fa-award me-2"></i>{{ student.get_full_name|default:student.user.username }} (No ID)
-                                            </span>
-                                            {% endif %}
-                                        </li>
-                                        <li>
-                                            {% if student.id %}  <!-- ADD THIS CHECK -->
-                                            <a class="dropdown-item {% if request.resolver_match.url_name == 'guardian_student_attendance' and request.resolver_match.kwargs.student_id == student.id|stringformat:'s' %}active{% endif %}" 
-                                            href="{% url 'students:guardian_student_attendance' student_id=student.id %}">
-                                                <i class="fas fa-calendar-check me-2"></i>{{ student.get_full_name|default:student.user.username }}'s Attendance
-                                            </a>
-                                            {% else %}  <!-- ADD FALLBACK -->
-                                            <span class="dropdown-item text-muted">
-                                                <i class="fas fa-calendar-check me-2"></i>{{ student.get_full_name|default:student.user.username }} (No ID)
-                                            </span>
-                                            {% endif %}  <!-- END CHECK -->
-                                        </li>
-                                        {% if not forloop.last %}<li><hr class="dropdown-divider m-0"></li>{% endif %}
-                                        {% endfor %}
-                                {% else %}
-                                    <li class="dropdown-item-text text-muted small">
-                                        <i class="fas fa-info-circle me-2"></i>No students linked to your account
-                                    </li>
-                                {% endif %}
-                                {% endwith %}
                             </ul>
                         </li>
                         {% endif %}

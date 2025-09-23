@@ -31,7 +31,7 @@
                 <div class="col-md-4">
                     <p><strong>Guardian:</strong> {{ student.guardian }}</p>
                     <p><strong>Attendance:</strong> 
-                        <span class="badge {% if student.attendance_percentage >= 75 %}bg-success{% else %}bg-warning{% endif %}">
+                        <span>
                             {{ student.attendance_percentage }}%
                         </span>
                     </p>
@@ -45,7 +45,7 @@
         <div class="col-md-3">
             <div class="card text-center border-primary">
                 <div class="card-body">
-                    <h2 class="text-primary">{{ student.get_gpa|default:"-" }}</h2>
+                    <h2 class="text-primary">{{ student.get_gpa }}</h2>
                     <p class="text-muted mb-0">Current GPA</p>
                 </div>
             </div>
