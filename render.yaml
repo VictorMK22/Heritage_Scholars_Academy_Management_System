@@ -11,7 +11,7 @@ services:
     plan: free
     rootDir: .
     buildCommand: "./build.sh"
-    startCommand: "cd school_mgmt && gunicorn school_mgmt.wsgi:application --host 0.0.0.0 --port $PORT --workers 2 --timeout 30"
+    startCommand: "cd school_mgmt && gunicorn school_mgmt.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 30"
     envVars:
       - key: PYTHON_VERSION
         value: "3.11.9"
