@@ -11,7 +11,7 @@ services:
     plan: free
     rootDir: .
     buildCommand: "./build.sh"
-    startCommand: "gunicorn school_mgmt.wsgi:application"
+    startCommand: "cd school_mgmt && gunicorn school_mgmt.wsgi:application --host 0.0.0.0 --port $PORT"
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -23,3 +23,5 @@ services:
         value: "false"
       - key: ALLOWED_HOSTS
         value: ".onrender.com"
+      - key: PYTHONPATH
+        value: "/opt/render/project/src"
