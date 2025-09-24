@@ -1,9 +1,10 @@
-# 0005_student_id_alter_student_user.py
 import django.db.models.deletion
 from django.conf import settings
 from django.db import migrations, models
 
+
 class Migration(migrations.Migration):
+
     dependencies = [
         ('students', '0004_student_roll_no'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
@@ -13,8 +14,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='student',
             name='id',
-            field=models.AutoField(auto_created=True, default=1, serialize=False),  # No primary_key=True!
-            preserve_default=False,
+            field=models.BigAutoField(auto_created=True, primary_key=False, serialize=False),  # Use BigAutoField, no default value
         ),
         migrations.AlterField(
             model_name='student',
