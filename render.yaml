@@ -11,8 +11,10 @@ services:
     plan: free
     rootDir: .
     buildCommand: "./build.sh"
-    startCommand: "cd school_mgmt && gunicorn school_mgmt.wsgi:application --host 0.0.0.0 --port $PORT"
+    startCommand: "cd school_mgmt && gunicorn school_mgmt.wsgi:application --host 0.0.0.0 --port $PORT --workers 2 --timeout 30"
     envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
       - key: DATABASE_URL
         fromDatabase:
           name: school_mgmt_db
@@ -23,5 +25,7 @@ services:
         value: "false"
       - key: ALLOWED_HOSTS
         value: ".onrender.com"
+      - key: DJANGO_SETTINGS_MODULE
+        value: "school_mgmt.settings"
       - key: PYTHONPATH
         value: "/opt/render/project/src"
