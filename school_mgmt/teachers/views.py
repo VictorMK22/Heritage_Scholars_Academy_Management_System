@@ -121,14 +121,14 @@ def dashboard(request):
             try:
                 # Look for Classroom where this teacher is class teacher
                 # Fix import - check the correct model name in your academics app
-                from academics.models import Classroom, AcademicClass  # Try different common names
+                from academics.models import Class  # Try different common names
                 primary_class = None
                 
                 # Try different possible field names
-                if hasattr(academics.models, 'Classroom'):
-                    primary_class = academics.models.Classroom.objects.filter(class_teacher=teacher).first()
-                elif hasattr(academics.models, 'AcademicClass'):
-                    primary_class = academics.models.AcademicClass.objects.filter(class_teacher=teacher).first()
+                if hasattr(academics.models, 'Class'):
+                    primary_class = academics.models.Class.objects.filter(class_teacher=teacher).first()
+                elif hasattr(academics.models, 'Class'):
+                    primary_class = academics.models.Class.objects.filter(class_teacher=teacher).first()
                 else:
                     # Try to get from ClassTeaching
                     latest_teaching = ClassTeaching.objects.filter(teacher=teacher).first()
