@@ -81,6 +81,7 @@ class Subject(models.Model):
 
     class Meta:
         ordering = ['name']
+        
 class Grade(models.Model):
     student = models.ForeignKey("students.Student", on_delete=models.CASCADE, related_name='grades')
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='grades')

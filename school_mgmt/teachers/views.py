@@ -44,7 +44,7 @@ def dashboard(request):
     # Try alternative query with short year version
     alternative_assignments = ClassTeaching.objects.filter(
         teacher=teacher,
-        subjects__academic_year=current_year_short
+        subjects__academic_year=current_year
     ).select_related('classroom').prefetch_related('subjects').distinct()
     
     print(f"Alternative assignments count: {alternative_assignments.count()}")
