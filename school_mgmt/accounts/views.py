@@ -51,7 +51,7 @@ def register(request):
                 # Redirect based on role if needed
                 if user.is_admin():
                     return redirect('admin:index')
-                return redirect('profile')
+                return redirect('accounts:profile')
             
             except Exception as e:
                 # Log the error for debugging
