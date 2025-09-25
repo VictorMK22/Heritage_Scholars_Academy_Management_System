@@ -41,16 +41,30 @@ def register(request):
     if request.method == 'POST':
         form = UserRegisterForm(request.POST, request.FILES)
         if form.is_valid():
-            user = form.save()
+            try:
+                user = form.save()
+                
+                # Login the user after registration
+                login(request, user)
+                messages.success(request, 'Registration successful!')
+                
+                # Redirect based on role if needed
+                if user.is_admin():
+                    return redirect('admin:index')
+                return redirect('profile')
             
-            # Login the user after registration
-            login(request, user)
-            messages.success(request, 'Registration successful!')
-            
-            # Redirect based on role if needed
-            if user.is_admin():
-                return redirect('admin:index')
-            return redirect('profile')
+            except Exception as e:
+                # Log the error for debugging
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Error during registration: {str(e)}")
+                
+                messages.error(request, 'An error occurred during registration. Please try again.')
+        else:
+            # Add form errors to messages - THIS IS WHAT'S MISSING!
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
     else:
         form = UserRegisterForm()
     
@@ -62,12 +76,23 @@ def student_register(request):
     if request.method == 'POST':
         form = UserRegisterForm(request.POST, request.FILES)
         if form.is_valid():
-            user = form.save(commit=False)
-            user.role = 'student'
-            user.save()
-            login(request, user)
-            messages.success(request, 'Student registration successful!')
-            return redirect('students:student_dashboard')
+            try:
+                user = form.save(commit=False)
+                user.role = 'student'
+                user.save()
+                login(request, user)
+                messages.success(request, 'Student registration successful!')
+                return redirect('students:student_dashboard')
+            except Exception as e:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Error during student registration: {str(e)}")
+                messages.error(request, 'An error occurred during registration. Please try again.')
+        else:
+            # Add form errors to messages
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
     else:
         form = UserRegisterForm(initial={'role': 'student'})
     
@@ -77,12 +102,23 @@ def teacher_register(request):
     if request.method == 'POST':
         form = UserRegisterForm(request.POST, request.FILES)
         if form.is_valid():
-            user = form.save(commit=False)
-            user.role = 'teacher'
-            user.save()
-            login(request, user)
-            messages.success(request, 'Teacher registration successful!')
-            return redirect('teachers:dashboard')
+            try:
+                user = form.save(commit=False)
+                user.role = 'teacher'
+                user.save()
+                login(request, user)
+                messages.success(request, 'Teacher registration successful!')
+                return redirect('teachers:dashboard')
+            except Exception as e:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Error during teacher registration: {str(e)}")
+                messages.error(request, 'An error occurred during registration. Please try again.')
+        else:
+            # Add form errors to messages
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
     else:
         form = UserRegisterForm(initial={'role': 'teacher'})
     
