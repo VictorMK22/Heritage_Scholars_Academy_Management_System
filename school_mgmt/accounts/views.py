@@ -25,7 +25,7 @@ class CustomLoginView(LoginView):
             return reverse('students:guardian_dashboard')
         elif user.is_admin():
             return reverse('admin:index')
-        return reverse('profile')
+        return reverse('home')
 
 class CustomLogoutView(LogoutView):
     next_page = reverse_lazy('accounts:login')  
@@ -51,7 +51,7 @@ def register(request):
                 # Redirect based on role if needed
                 if user.is_admin():
                     return redirect('admin:index')
-                return redirect('accounts:profile')
+                return redirect('home')
             
             except Exception as e:
                 # Log the error for debugging
